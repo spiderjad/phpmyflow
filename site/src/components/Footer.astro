@@ -1,0 +1,73 @@
+---
+import { AUTHOR, CONTACT_EMAIL, LICENSE, RELEASE_URL, REPO_URL, SECURITY_URL } from '../config';
+import { homePath, messages, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = messages(locale);
+const home = homePath(locale);
+const columns = [
+  {
+    title: t.footer.product,
+    links: [
+      { href: `${home}#features`, label: t.nav.features },
+      { href: `${home}#screenshots`, label: t.nav.screenshots },
+      { href: `${home}#install`, label: t.nav.install },
+      { href: `${home}#faq`, label: t.nav.faq },
+    ],
+  },
+  {
+    title: t.footer.project,
+    links: [
+      { href: REPO_URL, label: 'GitHub' },
+      { href: RELEASE_URL, label: t.footer.releases },
+      { href: SECURITY_URL, label: t.footer.security },
+    ],
+  },
+  {
+    title: t.footer.contact,
+    links: [{ href: `mailto:${CONTACT_EMAIL}`, label: CONTACT_EMAIL }],
+  },
+];
+---
+
+<footer class="ws-footer">
+  <div class="ws-wrap ws-footer__grid">
+    <div>
+      <p class="ws-footer__brand">
+        <img src="/favicon.svg" alt="" width="24" height="24" loading="lazy" />phpMyFlow
+      </p>
+      <p class="ws-muted">{t.footer.tagline}</p>
+    </div>
+    {
+      columns.map((c) => (
+        <div>
+          <h2 class="ws-footer__title">{c.title}</h2>
+          <ul class="ws-footer__links">
+            {c.links.map((l) => (
+              <li>
+                <a href={l.href}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+  <div class="ws-footer__bottom">
+    <div class="ws-wrap ws-footer__bottom-row">
+      <p>{t.footer.madeBy} <a href={AUTHOR.url}>{AUTHOR.name}</a></p>
+      <p>
+        {LICENSE ? (
+          <>
+            {t.footer.license}: <a href={LICENSE.url}>{LICENSE.name}</a>
+          </>
+        ) : (
+          t.footer.licenseTbd
+        )}
+      </p>
+    </div>
+  </div>
+</footer>

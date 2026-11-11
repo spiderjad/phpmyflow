@@ -1,0 +1,19 @@
+---
+// A command with a Copy button (src/scripts/site.ts). Without JS the text can still be selected.
+import Icon from './Icon.astro';
+
+interface Props {
+  code: string;
+  label: string;
+  copy: string;
+  copied: string;
+}
+const { code, label, copy, copied } = Astro.props;
+---
+
+<div class="ws-code" role="group" aria-label={label}>
+  <pre><code>{code}</code></pre>
+  <button type="button" class="v-btn-secondary v-btn--sm ws-code__copy" data-copy={code} data-copied={copied} hidden>
+    <Icon name="copy" size={14} /><span>{copy}</span>
+  </button>
+</div>

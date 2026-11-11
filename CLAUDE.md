@@ -93,6 +93,11 @@ web/                    Svelte 5 + Vite + TypeScript UI
   src/components/       Login, Sidebar, DataGrid (shared by TableView and SqlView), RowDetail, StructureView, SqlEditor, AiPanel…
   src/locales/*.json    en, es, it, fr
 docker/                 Dockerfile, sample.sql (shop database + read-only demo user)
+site/                   public website (phpmyflow.spiderjad.com), NOT part of the release: static Astro, en at / and es at /es/ (it/fr prepared in src/i18n/locales.ts)
+  src/config.ts         URLs, DEMO_URL + DEMO_ENABLED (false: "Demo · coming soon" disabled), contact, LICENSE (null = "License: TBD"), ANALYTICS hook
+  src/i18n/*.ts         all texts (Messages type: a missing key fails astro check); src/components/Home.astro = every section
+  src/components/Shot.astro  light/dark <picture> in AVIF/WebP widths (sharp); screenshots from scripts/shots.mjs (sample DB only), og.mjs social images
+  public/.htaccess      HTTPS, headers, 404, cache (_astro/.htaccess: immutable); CSP is a <meta> per page so it never reaches /demo/
 scripts/build-release.sh  builds dist/phpmyflow-<version>.zip
 ```
 
@@ -157,6 +162,7 @@ cd web && npm run e2e                        # Playwright (needs php -S + docker
 cd web && npm run build                      # writes server/index.html + server/assets
 for f in server/api.php server/src/*.php; do php -l "$f"; done
 scripts/build-release.sh                     # dist zip
+cd site && npm run build                      # website → site/dist (scripts/build-site.ps1 → site-dist.zip; docs/site-deploy.md)
 scripts/serve-lan.ps1 / serve-lan.sh         # serve on the LAN (checks PHP, builds the UI, firewall hint); php -S … -t server scripts/lan-router.php only serves the UI and api.php
 ```
 

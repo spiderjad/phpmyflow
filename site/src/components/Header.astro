@@ -1,0 +1,52 @@
+---
+// Sticky header: logo, section links, language, GitHub and Download.
+// Below 900 px the links move into a disclosure menu (<details>, works without JS).
+import { RELEASE_URL, REPO_URL } from '../config';
+import { homePath, messages, type Locale } from '../i18n';
+import Icon from './Icon.astro';
+import LanguagePicker from './LanguagePicker.astro';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = messages(locale);
+const home = homePath(locale);
+const links = [
+  { href: `${home}#features`, label: t.nav.features },
+  { href: `${home}#screenshots`, label: t.nav.screenshots },
+  { href: `${home}#compare`, label: t.nav.compare },
+  { href: `${home}#install`, label: t.nav.install },
+  { href: `${home}#faq`, label: t.nav.faq },
+];
+---
+
+<header class="ws-header">
+  <div class="ws-wrap ws-header__row">
+    <a class="ws-brand" href={home}>
+      <img src="/favicon.svg" alt="" width="28" height="28" />
+      <span>phpMyFlow</span>
+    </a>
+    <nav class="ws-nav" aria-label={t.a11y.mainNav}>
+      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+    <div class="ws-header__actions">
+      <LanguagePicker locale={locale} />
+      <a class="v-btn-ghost ws-hide-sm" href={REPO_URL}>
+        <Icon name="github" size={18} />GitHub
+      </a>
+      <a class="v-btn-primary ws-pill ws-hide-xs" href={RELEASE_URL}>{t.hero.download}</a>
+      <details class="ws-menu" data-close-outside>
+        <summary class="v-btn-icon" aria-label={t.a11y.menu}>
+          <Icon name="menu" class="ws-menu__open" />
+          <Icon name="x" class="ws-menu__close" />
+        </summary>
+        <nav class="ws-menu__panel" aria-label={t.a11y.mobileNav}>
+          {links.map((l) => <a href={l.href}>{l.label}</a>)}
+          <a href={REPO_URL}>GitHub</a>
+          <a class="v-btn-primary ws-pill" href={RELEASE_URL}>{t.hero.download}</a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>

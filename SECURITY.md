@@ -5,8 +5,9 @@ phpMyFlow gives direct access to databases, so security reports get priority.
 ## Reporting a vulnerability
 
 Please **do not open a public issue**. Use GitHub's private vulnerability reporting
-(Security → Report a vulnerability) on this repository. Include steps to reproduce,
-the affected version and the impact you see.
+(Security → Report a vulnerability) on this repository, or email
+contacto@spiderjad.com. Include steps to reproduce, the affected version and the
+impact you see.
 
 You'll get an acknowledgement within 72 hours. Fixes are released as soon as possible
 and credited in the release notes unless you prefer otherwise.

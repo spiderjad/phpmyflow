@@ -1,0 +1,39 @@
+---
+// Language picker: plain links to the same page in each enabled language
+// (hreflang + lang), in a disclosure that works without JS.
+import { ENABLED_LOCALES, homePath, localeInfo, messages, type Locale } from '../i18n';
+import Icon from './Icon.astro';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = messages(locale);
+---
+
+<details class="ws-lang" data-close-outside>
+  <summary class="v-btn-ghost" title={localeInfo(locale).label}>
+    <Icon name="globe" size={18} />
+    <!-- Accessible name "Language: EN": it contains the visible text (WCAG 2.5.3). -->
+    <span class="ws-sr">{t.a11y.language}:</span>
+    <span>{locale.toUpperCase()}</span>
+  </summary>
+  <ul class="v-menu ws-lang__list">
+    {
+      ENABLED_LOCALES.map((l) => (
+        <li>
+          <a
+            class="v-menu__item"
+            href={homePath(l.code)}
+            hreflang={l.hreflang}
+            lang={l.hreflang}
+            aria-current={l.code === locale ? 'page' : undefined}
+          >
+            <span class="v-menu__label">{l.label}</span>
+            {l.code === locale && <Icon name="check" size={16} />}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</details>

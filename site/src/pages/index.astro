@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import Home from '../components/Home.astro';
+import { messages } from '../i18n';
+import { softwareApplication } from '../lib/jsonld';
+
+const t = messages('en');
+---
+
+<Base locale="en" title={t.meta.title} description={t.meta.description} alternates jsonLd={[softwareApplication('en')]}>
+  <Home locale="en" />
+</Base>

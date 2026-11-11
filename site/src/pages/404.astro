@@ -1,0 +1,29 @@
+---
+// One 404 for every language (the .htaccess serves it for any missing path).
+import Base from '../layouts/Base.astro';
+import { ENABLED_LOCALES, homePath, messages } from '../i18n';
+
+const t = messages('en');
+---
+
+<Base locale="en" title={`${t.notFound.title} · phpMyFlow`} description={t.notFound.text} noindex>
+  <section class="ws-section ws-404">
+    <div class="ws-wrap ws-wrap--narrow">
+      <p class="ws-eyebrow">404</p>
+      {
+        ENABLED_LOCALES.map((l, i) => {
+          const m = messages(l.code);
+          return (
+            <div lang={l.hreflang} class="ws-404__block">
+              {i === 0 ? <h1 class="ws-h2">{m.notFound.title}</h1> : <h2 class="ws-h3">{m.notFound.title}</h2>}
+              <p class="ws-muted">{m.notFound.text}</p>
+              <p>
+                <a class="v-btn-primary ws-pill" href={homePath(l.code)}>{m.notFound.back}</a>
+              </p>
+            </div>
+          );
+        })
+      }
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,267 @@
+---
+// The home page, the same in every language (text from src/i18n/<locale>.ts).
+import { CONTACT_EMAIL, DEMO_ENABLED, DEMO_URL, RELEASE_URL, REPO_URL, SECURITY_URL } from '../config';
+import { messages, type Locale } from '../i18n';
+import { rich } from '../lib/rich';
+import CodeBlock from './CodeBlock.astro';
+import Icon from './Icon.astro';
+import Shot from './Shot.astro';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = messages(locale);
+const markIcon = { yes: 'check', partial: 'partial', no: 'dash' } as const;
+const tools = ['phpMyFlow', 'phpMyAdmin', 'Adminer'];
+---
+
+<section class="ws-hero" aria-labelledby="hero-title">
+  <div class="ws-wrap">
+    <p class="ws-eyebrow">{t.hero.eyebrow}</p>
+    <h1 id="hero-title" class="ws-hero__title">{t.hero.title}</h1>
+    <p class="ws-hero__lead">{t.hero.subtitle}</p>
+    <div class="ws-hero__actions">
+      <a class="v-btn-primary ws-pill ws-btn-lg" href={RELEASE_URL}>
+        <Icon name="download" size={18} />{t.hero.download}
+      </a>
+      {
+        DEMO_ENABLED ? (
+          <a class="v-btn-secondary ws-pill ws-btn-lg" href={DEMO_URL}>
+            <Icon name="play" size={18} />
+            {t.hero.demo}
+          </a>
+        ) : (
+          <button type="button" class="v-btn-secondary ws-pill ws-btn-lg" disabled>
+            <Icon name="play" size={18} />
+            {t.hero.demoSoon}
+          </button>
+        )
+      }
+      <a class="v-btn-secondary ws-pill ws-btn-lg" href={REPO_URL}>
+        <Icon name="github" size={18} />{t.hero.github}
+      </a>
+    </div>
+    <p class="ws-hero__status"><span class="v-badge v-badge--warning">v0.1</span> {t.hero.status}</p>
+  </div>
+  <div class="ws-wrap ws-wrap--wide">
+    <div class="ws-frame ws-frame--hero">
+      <Shot id="hero" alt={t.hero.shotAlt} priority sizes="(min-width: 1248px) 1200px, calc(100vw - 32px)" widths={[640, 960, 1280, 1920, 2560]} />
+    </div>
+  </div>
+</section>
+
+<section id="features" class="ws-section" aria-labelledby="features-title">
+  <div class="ws-wrap">
+    <p class="ws-eyebrow">{t.features.eyebrow}</p>
+    <h2 id="features-title" class="ws-h2">{t.features.title}</h2>
+    <p class="ws-intro">{t.features.intro}</p>
+    <ul class="ws-features">
+      {
+        t.features.items.map((f) => (
+          <li class="v-card ws-feature">
+            <span class="ws-feature__icon">
+              <Icon name={f.icon} size={20} />
+            </span>
+            <h3 class="ws-h3">{f.title}</h3>
+            <p set:html={rich(f.text)} />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<section id="screenshots" class="ws-section ws-section--subtle" aria-labelledby="screenshots-title">
+  <div class="ws-wrap">
+    <p class="ws-eyebrow">{t.gallery.eyebrow}</p>
+    <h2 id="screenshots-title" class="ws-h2">{t.gallery.title}</h2>
+    <p class="ws-intro">{t.gallery.intro}</p>
+    <ul class="ws-gallery">
+      {
+        t.gallery.items.map((g) => (
+          <li>
+            <figure>
+              <div class="ws-frame">
+                <Shot id={g.id} alt={g.alt} sizes="(min-width: 1184px) 560px, (min-width: 768px) calc(50vw - 40px), calc(100vw - 32px)" widths={[480, 800, 1120, 1600]} />
+              </div>
+              <figcaption>
+                <strong>{g.title}</strong>
+                <span>{g.text}</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<section id="compare" class="ws-section" aria-labelledby="compare-title">
+  <div class="ws-wrap">
+    <p class="ws-eyebrow">{t.compare.eyebrow}</p>
+    <h2 id="compare-title" class="ws-h2">{t.compare.title}</h2>
+    <p class="ws-intro">{t.compare.intro}</p>
+    <div class="v-table-wrap ws-compare" tabindex="0" role="region" aria-labelledby="compare-title">
+      <table class="v-table">
+        <caption class="ws-sr">{t.compare.caption}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{t.compare.feature}</th>
+            {tools.map((name, i) => <th scope="col" class={i === 0 ? 'ws-compare__us' : undefined}>{name}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {
+            t.compare.rows.map((row) => (
+              <tr>
+                <th scope="row">{row.label}</th>
+                {row.cells.map((c, i) => (
+                  <td class={i === 0 ? 'ws-compare__us' : undefined}>
+                    {'mark' in c ? (
+                      <span class={`ws-mark ws-mark--${c.mark}`}>
+                        <Icon name={markIcon[c.mark]} size={16} />
+                        <span>{t.compare.marks[c.mark]}</span>
+                        {c.note && <span class="ws-mark__note">{c.note}</span>}
+                      </span>
+                    ) : (
+                      c.text
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="ws-footnote">{t.compare.footnote}</p>
+  </div>
+</section>
+
+<section id="install" class="ws-section ws-section--subtle" aria-labelledby="install-title">
+  <div class="ws-wrap">
+    <p class="ws-eyebrow">{t.install.eyebrow}</p>
+    <h2 id="install-title" class="ws-h2">{t.install.title}</h2>
+    <p class="ws-intro" set:html={rich(t.install.intro)} />
+    <div class="ws-tabs" data-tabs>
+      <div class="v-segmented ws-tabs__list" role="tablist" aria-label={t.install.tablist} hidden>
+        {
+          t.install.tabs.map((tab, i) => (
+            <button
+              type="button"
+              class="v-segmented__item"
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-controls={`panel-${tab.id}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              tabindex={i === 0 ? 0 : -1}
+            >
+              {tab.label}
+            </button>
+          ))
+        }
+      </div>
+      {
+        t.install.tabs.map((tab) => (
+          <div class="v-card ws-tabs__panel" id={`panel-${tab.id}`} role="tabpanel" aria-labelledby={`tab-${tab.id}`} tabindex="0">
+            <h3 class="ws-h3" data-tab-title>{tab.label}</h3>
+            <p class="ws-muted" set:html={rich(tab.intro)} />
+            <ol class="ws-steps">
+              {tab.steps.map((s) => (
+                <li>
+                  <p set:html={rich(s.text)} />
+                  {s.code && <CodeBlock code={s.code} label={s.codeLabel ?? s.text} copy={t.install.copy} copied={t.install.copied} />}
+                </li>
+              ))}
+            </ol>
+            {tab.note && (
+              <p class="v-banner v-banner--warning ws-note">
+                <Icon name="lock" size={16} />
+                <span>{tab.note}</span>
+              </p>
+            )}
+          </div>
+        ))
+      }
+    </div>
+    <p class="ws-status" aria-live="polite" data-copy-status></p>
+  </div>
+</section>
+
+<section id="ai" class="ws-section" aria-labelledby="ai-title">
+  <div class="ws-wrap ws-split">
+    <div>
+      <p class="ws-eyebrow">{t.ai.eyebrow}</p>
+      <h2 id="ai-title" class="ws-h2">{t.ai.title}</h2>
+      <p class="ws-intro">{t.ai.intro}</p>
+    </div>
+    <ul class="ws-points">
+      {
+        t.ai.points.map((p, i) => (
+          <li>
+            <span class="ws-feature__icon">
+              <Icon name={['server', 'key', 'eye', 'lock'][i] ?? 'check'} size={18} />
+            </span>
+            <div>
+              <h3 class="ws-h3">{p.title}</h3>
+              <p set:html={rich(p.text)} />
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<section id="security" class="ws-section ws-section--subtle" aria-labelledby="security-title">
+  <div class="ws-wrap ws-split">
+    <div>
+      <p class="ws-eyebrow">{t.security.eyebrow}</p>
+      <h2 id="security-title" class="ws-h2">{t.security.title}</h2>
+      <p class="ws-intro">{t.security.intro}</p>
+      <ul class="ws-checks">
+        {
+          t.security.points.map((p) => (
+            <li>
+              <Icon name="check" size={18} />
+              <span set:html={rich(p)} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <aside class="v-card ws-report" aria-labelledby="report-title">
+      <div class="v-card__body">
+        <span class="ws-feature__icon"><Icon name="shield" size={20} /></span>
+        <h3 id="report-title" class="ws-h3">{t.security.reportTitle}</h3>
+        <p class="ws-muted">{t.security.report}</p>
+        <p><a class="ws-link" href={SECURITY_URL}>{t.security.policy}<Icon name="arrow" size={16} /></a></p>
+        <p>
+          <span class="ws-muted">{t.security.email}:</span>
+          <a class="ws-link" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section id="faq" class="ws-section" aria-labelledby="faq-title">
+  <div class="ws-wrap ws-wrap--narrow">
+    <p class="ws-eyebrow">{t.faq.eyebrow}</p>
+    <h2 id="faq-title" class="ws-h2">{t.faq.title}</h2>
+    <div class="ws-faq">
+      {
+        t.faq.items.map((item) => (
+          <details>
+            <summary>
+              <span>{item.q}</span>
+              <Icon name="chevron" size={18} />
+            </summary>
+            <p set:html={rich(item.a)} />
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>

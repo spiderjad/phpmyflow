@@ -1,0 +1,17 @@
+---
+// /es/ (and /it/, /fr/ once enabled in src/i18n/locales.ts).
+import Base from '../../layouts/Base.astro';
+import Home from '../../components/Home.astro';
+import { DEFAULT_LOCALE, ENABLED_LOCALES, messages, type Locale } from '../../i18n';
+import { softwareApplication } from '../../lib/jsonld';
+
+export function getStaticPaths() {
+  return ENABLED_LOCALES.filter((l) => l.code !== DEFAULT_LOCALE).map((l) => ({ params: { lang: l.code } }));
+}
+const locale = Astro.params.lang as Locale;
+const t = messages(locale);
+---
+
+<Base locale={locale} title={t.meta.title} description={t.meta.description} alternates jsonLd={[softwareApplication(locale)]}>
+  <Home locale={locale} />
+</Base>

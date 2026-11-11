@@ -104,3 +104,25 @@ Checked against spider-ui `0e6fa6e` (version 1.1.0).
 |---|---|---|
 | File drop zone | Drag and drop or browse, with name, size and the type detected from the content; keyboard reachable. | `components/ui/FileDrop.svelte`. |
 | Progress panel | Long job with real percentage, counters, a log, a "looks stopped" state with actions, and a minimized bottom bar. | `components/db/JobProgress.svelte`. |
+
+## Added for the public website (site/)
+
+The website uses `tokens.css` + `panel.css` (`v-btn-*`, `v-btn-ghost`,
+`v-btn-icon`, `v-card`, `v-table`, `v-segmented`, `v-menu`, `v-badge`,
+`v-banner`). spider-ui has no marketing layer yet; these pieces live in
+`site/src/styles/site.css` with the `ws-` prefix.
+
+| Gap | Why | Local workaround |
+|---|---|---|
+| Marketing type scale | Eyebrow (small caps label), display heading (~72 px, tight tracking), section heading and lead paragraph. `v-page-title` (24 px) is an app title. | `.ws-eyebrow`, `.ws-hero__title`, `.ws-h2`, `.ws-intro`. |
+| Large and pill buttons | Hero calls to action are bigger and rounder than panel buttons (`v-btn--sm` is the only size modifier). | `.ws-btn-lg`, `.ws-pill` on `v-btn-primary` / `v-btn-secondary`. |
+| Page container and section bands | Centered max-width container with responsive gutters; alternating subtle bands between sections. | `.ws-wrap`, `.ws-section`, `.ws-section--subtle`. |
+| Site header and footer | Sticky translucent header with nav, language and CTA collapsing to a menu; footer with link columns. | `components/Header.astro`, `Footer.astro`. |
+| Feature card with icon tile | Card with a small bordered icon square, title and text, in a 1/2/3 column grid. | `.ws-feature`, `.ws-feature__icon`. |
+| Comparison marks | Yes / partly / no in tables with icon + text (never color alone) and a note. | `.ws-mark--yes/partial/no`. |
+| Copyable code block | Same need as the Monitor's GRANT block: command with a Copy button and a polite live announcement. | `components/CodeBlock.astro`. |
+| Link menu (disclosure) | `v-menu` is documented as `role="menu"` (actions); a language picker needs a list of links in a disclosure, without menu semantics. | `v-menu` + `v-menu__item` on links inside `<details>` (`LanguagePicker.astro`). |
+| FAQ accordion | `<details>` list with dividers and a rotating chevron (reduced motion respected). | `.ws-faq`. |
+| Screenshot frame | Bordered, rounded image frame with shadow, swapping light/dark images with the system. | `.ws-frame` + `components/Shot.astro`. |
+| Token values outside CSS | `<meta name="theme-color">` needs literal colors; there is no exported list (JSON/TS) of the token values. | The `--sp-bg` values (`#ffffff` / `#0a0a0a`) are repeated in `Base.astro`. |
+| Theme toggle for marketing pages | The app has a light/dark/system switch; a static site that swaps `<picture>` sources by `prefers-color-scheme` cannot follow a manual `data-theme`. A shared pattern (and image strategy) would help. | The site follows the system only. |
