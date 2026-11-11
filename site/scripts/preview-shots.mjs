@@ -41,6 +41,9 @@ for (const [lang, path] of [['en', '/'], ['es', '/es/']]) {
       const height = await page.evaluate(() => document.documentElement.scrollHeight);
       await page.setViewportSize({ width: viewport.width, height });
       await page.waitForLoadState('networkidle');
+      // Every image loaded and decoded (lazy ones start late in a tall viewport).
+      await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30000 });
+      await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
       await page.waitForTimeout(300);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       if (overflow > 0) console.log(`[${lang} ${device} ${mode}] horizontal overflow: ${overflow}px`);
