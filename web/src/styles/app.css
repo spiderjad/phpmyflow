@@ -1,0 +1,196 @@
+/*
+ * phpMyFlow styles.
+ * Tokens (--sp-*) and panel components (.v-input, .v-btn-*, .v-badge,
+ * .v-dialog, .v-kbd...) come from spider-ui. This file only holds what is
+ * specific to phpMyFlow: the AI accent, SQL syntax colors, the data grid
+ * and the base reset. Missing generic pieces are listed in
+ * docs/spider-ui-gaps.md instead of being invented here.
+ */
+@import '@fontsource-variable/inter';
+@import 'spider-ui/tokens.css';
+@import 'spider-ui/panel.css';
+/* Themes after spider-ui: same token names, keyed on data-theme / data-mode (styles/themes/index.css). */
+@import './themes/index.css';
+
+:root {
+  /* Assistant only (CLAUDE.md: violet = AI). */
+  --ai: #6d28d9;
+  --ai-light: #f5f3ff;
+
+  /* Chart series (monitor). spider-ui has no chart palette yet (docs/spider-ui-gaps.md). */
+  --chart-1: #2563eb;
+  --chart-2: #0d9488;
+  --chart-3: #0891b2;
+  --chart-4: #db2777;
+  --chart-5: #7c7c7c;
+  --chart-grid: #ececec;
+
+  /* Primary key icon (gold): AA on every theme's background. */
+  --key-pk: #a16207;
+
+  /* SQL syntax highlighting (editor). */
+  --syn-keyword: #0550ae;
+  --syn-string: #0a7a3c;
+  --syn-number: #b35900;
+  --syn-comment: #6e6e6e;
+  --syn-type: #8250df;
+  --syn-ident: #24292f;
+}
+
+:root[data-mode='dark'] {
+  --key-pk: #fbbf24;
+  --chart-1: #60a5fa;
+  --chart-2: #2dd4bf;
+  --chart-3: #22d3ee;
+  --chart-4: #f472b6;
+  --chart-5: #a3a3a3;
+  --chart-grid: #222222;
+  --ai: #a78bfa;
+  --ai-light: #1c1530;
+  --syn-keyword: #79b8ff;
+  --syn-string: #85e89d;
+  --syn-number: #ffab70;
+  --syn-comment: #8f8f8f;
+  --syn-type: #d2a8ff;
+  --syn-ident: #ededed;
+}
+
+/* --- base --- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+/* Text size (Settings › Appearance): the UI is sized in px, so the whole app
+   scales with zoom (100% height still fills the window). */
+#app {
+  zoom: var(--pmf-zoom, 1);
+}
+
+body {
+  font-family: var(--sp-font);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--sp-text-primary);
+  background: var(--sp-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sp-focus);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mono,
+table.grid {
+  font-variant-ligatures: none;
+}
+.mono {
+  font-family: var(--sp-font-mono);
+  font-size: 12.5px;
+}
+
+/* --- assistant button (phpMyFlow only) --- */
+
+.v-btn-ai {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--sp-radius);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--ai-light);
+  border: 1px solid color-mix(in srgb, var(--ai) 40%, transparent);
+  color: var(--ai);
+  transition: border-color var(--sp-ease);
+}
+.v-btn-ai:hover:not(:disabled) {
+  border-color: var(--ai);
+}
+.v-btn--sm.v-btn-ai {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* --- data grid --- */
+
+.grid-wrap {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+table.grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--sp-font-mono);
+  font-size: 12.5px;
+  min-width: 100%;
+}
+table.grid th,
+table.grid td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--sp-border);
+  border-right: 1px solid var(--sp-border);
+  text-align: left;
+  white-space: nowrap;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+table.grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--sp-bg-subtle);
+  font-family: var(--sp-font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sp-text-secondary);
+}
+table.grid tbody tr:hover td {
+  background: var(--sp-bg-subtle);
+}
+.cell-null {
+  color: var(--sp-text-tertiary);
+  font-style: italic;
+}
+table.grid td.cell-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

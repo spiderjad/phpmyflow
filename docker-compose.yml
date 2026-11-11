@@ -1,0 +1,31 @@
+# Local try-out: MariaDB with the sample "shop" database + phpMyFlow.
+#   docker compose up --build   →   http://localhost:8080   (user: root / password: root)
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+    volumes:
+      - ./docker/sample.sql:/docker-entrypoint-initdb.d/01-sample.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      PMF_DB_LABEL: Docker MariaDB
+      PMF_DB_HOST: db
+      PMF_DB_PORT: 3306
+      # Uncomment to enable the assistant:
+      # PMF_AI_ENABLED: "true"
+      # PMF_AI_PROVIDER: anthropic
+      # PMF_AI_API_KEY: ${PMF_AI_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy

@@ -1,0 +1,94 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: pdo_mysql, openssl
+      - name: PHP syntax
+        run: for f in server/api.php server/config.sample.php server/src/*.php; do php -l "$f"; done
+      - name: PHP unit tests (database tests are skipped without a server)
+        run: PMF_TEST_DB=127.0.0.1:1:none:none php tests/php/run.php
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run check
+        working-directory: web
+      - run: npm test
+        working-directory: web
+      - name: Locale key parity
+        run: node -e "const f=['en','es','it','fr'].map(l=>Object.keys(require('./web/src/locales/'+l+'.json')).sort().join());if(!f.every(x=>x===f[0])){console.error('Locale keys differ');process.exit(1)}"
+      - run: npm run build
+        working-directory: web
+
+  # End-to-end against MariaDB with docker/sample.sql. The "Verified behaviors"
+  # in CLAUDE.md (e2e/verified-behaviors.spec.ts) run first and on their own.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: check
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports: ['3307:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: pdo_mysql, openssl
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Load the sample database
+        run: mysql -h 127.0.0.1 -P 3307 -uroot -proot < docker/sample.sql
+      - name: PHP tests with a database
+        run: PMF_TEST_DB=127.0.0.1:3307:root:root php tests/php/run.php
+      - name: Server config for the tests
+        run: |
+          cat > server/config.php <<'PHP'
+          <?php
+          return [
+              'servers' => [['label' => 'Sample (CI)', 'host' => '127.0.0.1', 'port' => 3307]],
+              'login_max_attempts' => 1000,
+          ];
+          PHP
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - name: Start phpMyFlow
+        run: php -S 127.0.0.1:8090 -t server > /tmp/php-server.log 2>&1 &
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Verified behaviors
+        run: npx playwright test e2e/verified-behaviors.spec.ts
+        working-directory: web
+      - name: All end-to-end tests
+        run: npx playwright test
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            web/test-results
+            /tmp/php-server.log

@@ -1,0 +1,16 @@
+/*
+ * phpMyFlow themes. Applied with attributes on <html>:
+ *   data-theme  monochrome | graphite | slate | spider | forest | contrast
+ *   data-mode   light | dark  ("system" resolved before paint, index.html)
+ *   data-density compact | comfortable,  data-radius sharp | soft | round
+ * Every theme only sets spider-ui token names (--sp-*): no component uses hex.
+ * Contrast AA is checked by src/lib/theme.test.ts for every theme and mode.
+ */
+@import './modes.css';
+@import './monochrome.css';
+@import './graphite.css';
+@import './slate.css';
+@import './spider.css';
+@import './forest.css';
+@import './contrast.css';
+@import './preferences.css';

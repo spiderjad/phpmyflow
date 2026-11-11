@@ -1,0 +1,45 @@
+/* phpMyFlow theme · High contrast: pure black and white, strong borders (accessibility).
+ * [data-preview-theme][data-mode-scope]: the same tokens on a subtree (theme cards in Settings).
+ * Only the tokens that differ from styles/themes/modes.css (Monochrome = spider-ui). */
+:root[data-theme='contrast'][data-mode='light'],
+[data-preview-theme='contrast'][data-mode-scope='light'] {
+  --sp-bg: #ffffff;
+  --sp-bg-subtle: #ffffff;
+  --sp-bg-muted: #f0f0f0;
+  --sp-canvas: #e6e6e6;
+  --sp-border: #767676;
+  --sp-border-hover: #000000;
+  --sp-text-primary: #000000;
+  --sp-text-secondary: #262626;
+  --sp-text-tertiary: #4d4d4d;
+  --sp-inverse: #000000;
+  --sp-inverse-hover: #262626;
+  --sp-on-inverse: #ffffff;
+  --sp-focus: #000000;
+  --sp-danger: #b91c1c;
+  --sp-danger-text: #991b1b;
+  --sp-success: #166534;
+  --sp-warning: #7c2d12;
+  --sp-focus-ring: rgba(0, 0, 0, 0.25);
+}
+:root[data-theme='contrast'][data-mode='dark'],
+[data-preview-theme='contrast'][data-mode-scope='dark'] {
+  --sp-bg: #000000;
+  --sp-bg-subtle: #000000;
+  --sp-bg-muted: #141414;
+  --sp-canvas: #0a0a0a;
+  --sp-border: #8a8a8a;
+  --sp-border-hover: #ffffff;
+  --sp-text-primary: #ffffff;
+  --sp-text-secondary: #e0e0e0;
+  --sp-text-tertiary: #bdbdbd;
+  --sp-inverse: #ffffff;
+  --sp-inverse-hover: #e0e0e0;
+  --sp-on-inverse: #000000;
+  --sp-focus: #ffffff;
+  --sp-danger: #fca5a5;
+  --sp-danger-text: #fecaca;
+  --sp-success: #86efac;
+  --sp-warning: #fde68a;
+  --sp-focus-ring: rgba(255, 255, 255, 0.35);
+}

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23111'/><path d='M9 21c3-8 11-8 14-1' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/><circle cx='23' cy='12' r='2.5' fill='white'/></svg>" />
+    <title>phpMyFlow</title>
+    <script>
+      // Theme before the first paint (no flash of the default theme). Mirrors
+      // lib/theme.ts applyAppearance(); keep both in sync.
+      (function () {
+        var d = document.documentElement, a = {};
+        try { a = JSON.parse(localStorage.getItem('pmf_appearance') || '{}') || {}; } catch (e) {}
+        var m = a.mode === 'light' || a.mode === 'dark' ? a.mode : window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        d.setAttribute('data-theme', a.theme || 'monochrome');
+        d.setAttribute('data-mode', m);
+        d.setAttribute('data-density', a.density || 'compact');
+        d.setAttribute('data-radius', a.radius || 'soft');
+        if (a.fontSize && a.fontSize !== 14) d.style.setProperty('--pmf-zoom', String(a.fontSize / 14));
+        var h = m === 'dark' ? a.accentDark : a.accentLight;
+        if (h && /^#[0-9a-f]{6}$/i.test(h)) {
+          var c = [1, 3, 5].map(function (i) { var v = parseInt(h.substr(i, 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+          var L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2], w = 1.05 / (L + 0.05), b = (L + 0.05) / 0.05;
+          d.style.setProperty('--sp-inverse', h);
+          d.style.setProperty('--sp-focus', h);
+          d.style.setProperty('--sp-on-inverse', w >= b ? '#ffffff' : '#000000');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

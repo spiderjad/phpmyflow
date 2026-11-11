@@ -1,0 +1,61 @@
+/*
+ * Settings that are not a theme: SQL syntax colors (data-syntax), zebra rows
+ * (data-zebra) and density (data-density) for the sidebar and the structure
+ * table. The data grid reads density itself (row height for virtualization).
+ */
+
+/* SQL syntax: "theme" = the --syn-* defaults in app.css. */
+:root[data-syntax='mono'] {
+  --syn-keyword: var(--sp-text-primary);
+  --syn-string: var(--sp-text-secondary);
+  --syn-number: var(--sp-text-primary);
+  --syn-comment: var(--sp-text-tertiary);
+  --syn-type: var(--sp-text-secondary);
+  --syn-ident: var(--sp-text-primary);
+}
+:root[data-syntax='classic'][data-mode='light'] {
+  --syn-keyword: #0000cc;
+  --syn-string: #a31515;
+  --syn-number: #098658;
+  --syn-comment: #008000;
+  --syn-type: #267f99;
+  --syn-ident: #001080;
+}
+:root[data-syntax='classic'][data-mode='dark'] {
+  --syn-keyword: #569cd6;
+  --syn-string: #ce9178;
+  --syn-number: #b5cea8;
+  --syn-comment: #6a9955;
+  --syn-type: #4ec9b0;
+  --syn-ident: #9cdcfe;
+}
+:root[data-syntax='pastel'][data-mode='light'] {
+  --syn-keyword: #7c5cbf;
+  --syn-string: #237a5c;
+  --syn-number: #94592a;
+  --syn-comment: #6b7280;
+  --syn-type: #336d92;
+  --syn-ident: #3a3f4a;
+}
+:root[data-syntax='pastel'][data-mode='dark'] {
+  --syn-keyword: #c4b5fd;
+  --syn-string: #a7f3d0;
+  --syn-number: #fed7aa;
+  --syn-comment: #9ca3af;
+  --syn-type: #bae6fd;
+  --syn-ident: #e5e7eb;
+}
+
+/* Zebra rows in the data grid (DataGrid marks every other row with .odd). */
+:root[data-zebra='on'] table.dg tr.odd > td {
+  background-color: color-mix(in srgb, var(--sp-bg-muted) 55%, var(--sp-bg));
+}
+
+/* Comfortable density: more air in the sidebar and the structure table. */
+:root[data-density='comfortable'] nav.tables .tbl {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+:root[data-density='comfortable'] .col-row {
+  min-height: 48px;
+}

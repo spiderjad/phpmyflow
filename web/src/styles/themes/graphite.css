@@ -1,0 +1,35 @@
+/* phpMyFlow theme · Graphite: warm greys (stone).
+ * [data-preview-theme][data-mode-scope]: the same tokens on a subtree (theme cards in Settings).
+ * Only the tokens that differ from styles/themes/modes.css (Monochrome = spider-ui). */
+:root[data-theme='graphite'][data-mode='light'],
+[data-preview-theme='graphite'][data-mode-scope='light'] {
+  --sp-bg: #fdfcfb;
+  --sp-bg-subtle: #f7f5f2;
+  --sp-bg-muted: #efece7;
+  --sp-canvas: #e8e4de;
+  --sp-border: #e6e1da;
+  --sp-border-hover: #a39a8f;
+  --sp-text-primary: #1c1917;
+  --sp-text-secondary: #57534e;
+  --sp-text-tertiary: #736b62;
+  --sp-inverse: #292524;
+  --sp-inverse-hover: #44403c;
+  --sp-on-inverse: #fafaf9;
+  --sp-focus: #292524;
+}
+:root[data-theme='graphite'][data-mode='dark'],
+[data-preview-theme='graphite'][data-mode-scope='dark'] {
+  --sp-bg: #141210;
+  --sp-bg-subtle: #1a1816;
+  --sp-bg-muted: #262320;
+  --sp-canvas: #1f1c19;
+  --sp-border: #34302c;
+  --sp-border-hover: #6b635b;
+  --sp-text-primary: #ece9e4;
+  --sp-text-secondary: #b0a99f;
+  --sp-text-tertiary: #8f877d;
+  --sp-inverse: #ece9e4;
+  --sp-inverse-hover: #cfc9c1;
+  --sp-on-inverse: #141210;
+  --sp-focus: #ece9e4;
+}
