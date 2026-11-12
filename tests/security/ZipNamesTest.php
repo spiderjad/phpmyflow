@@ -13,7 +13,7 @@ require_once __DIR__ . '/../php/support.php';
  */
 
 /** File names in a ZIP's central directory. */
-function zipNames(string $zip): array
+function secZipEntryNames(string $zip): array
 {
     $names = [];
     $pos = 0;
@@ -52,7 +52,7 @@ return [
                 }
             }
             eq('done', $r['status'], json_encode($r));
-            $names = zipNames((string) file_get_contents($dir . '/' . $start['id'] . '.export.out'));
+            $names = secZipEntryNames((string) file_get_contents($dir . '/' . $start['id'] . '.export.out'));
             eq(count($tables), count($names), json_encode($names));
             eq(count($names), count(array_unique(array_map('strtolower', $names))), 'unique: ' . json_encode($names));
             foreach ($names as $n) {
