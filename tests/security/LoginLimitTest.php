@@ -52,14 +52,15 @@ return [
             return;
         }
         [, $c, $db] = $s;
-        for ($i = 0; $i < 4; $i++) {
+        $max = (int) pmf_config()['login_max_attempts'];
+        for ($i = 0; $i < $max - 1; $i++) {
             eq('login_failed', signIn($c, $db, $db[2], 'wrong-' . $i));
         }
         eq(null, signIn($c, $db, $db[2], $db[3]), 'the demo sign-in works below the limit');
         $c->json('POST', 'a=logout');
         $c->csrf = $c->json('GET', 'a=session')['csrf'];
         eq('login_failed', signIn($c, $db, $db[2], 'wrong-again'));
-        eq('too_many_attempts', signIn($c, $db, $db[2], $db[3]), 'five failures in the window block even the demo credentials');
+        eq('too_many_attempts', signIn($c, $db, $db[2], $db[3]), 'reaching the limit blocks even the demo credentials');
     },
 
     'with demo sign-in, other users are refused before connecting and counted' => static function (): void {
@@ -69,7 +70,7 @@ return [
         [, $c, $db] = $s;
         eq('demo_only', signIn($c, $db, 'pmf_not_the_demo', 'x'));
         eq('demo_only', signIn($c, $db, 'pmf_not_the_demo', 'x', 'login_test'));
-        for ($i = 0; $i < 3; $i++) {
+        for ($i = 2; $i < (int) pmf_config()['login_max_attempts']; $i++) {
             eq('demo_only', signIn($c, $db, 'pmf_other_' . $i, 'x'));
         }
         eq('too_many_attempts', signIn($c, $db, $db[2], $db[3]));

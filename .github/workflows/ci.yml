@@ -80,7 +80,6 @@ jobs:
               'servers' => [['label' => 'Sample (CI)', 'host' => '127.0.0.1', 'port' => 3307]],
               // Like local development: the login tests use "Other server…" (php -S listens on 127.0.0.1 only).
               'allow_custom_host' => true,
-              'login_max_attempts' => 1000,
           ];
           PHP
       - name: PHP tests with a database
@@ -89,8 +88,9 @@ jobs:
         working-directory: web
       - run: npm run build
         working-directory: web
+      # Many sign-ins from one IP across the e2e run; the PHP tests keep the default limit.
       - name: Start phpMyFlow
-        run: php -S 127.0.0.1:8090 -t server > /tmp/php-server.log 2>&1 &
+        run: PMF_LOGIN_MAX_ATTEMPTS=1000 php -S 127.0.0.1:8090 -t server > /tmp/php-server.log 2>&1 &
       - run: npx playwright install --with-deps chromium
         working-directory: web
       - name: Verified behaviors

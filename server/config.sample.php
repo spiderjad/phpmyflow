@@ -82,7 +82,7 @@ return [
     'max_result_rows' => 1000,
 
     // Login brute-force protection.
-    'login_max_attempts' => 5,
+    'login_max_attempts' => (int) $env('PMF_LOGIN_MAX_ATTEMPTS', 5),
     'login_window_seconds' => 900,
 
     // Session idle timeout.
