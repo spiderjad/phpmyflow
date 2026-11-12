@@ -18,8 +18,9 @@ final class TestServer
     /**
      * @param array<string,string> $ini  -d overrides (memory_limit, max_execution_time...)
      * @param array<string,string> $env  environment for the server (PMF_TEST_FAULTS...)
+     * @param ?string $router  router script for php -S (scripts/lan-router.php)
      */
-    public function __construct(array $ini = [], array $env = [], ?int $port = null)
+    public function __construct(array $ini = [], array $env = [], ?int $port = null, ?string $router = null)
     {
         $port ??= self::freePort();
         $this->url = "http://127.0.0.1:$port/";
@@ -29,6 +30,9 @@ final class TestServer
             $cmd[] = "$k=$v";
         }
         array_push($cmd, '-S', "127.0.0.1:$port", '-t', realpath(__DIR__ . '/../../server'));
+        if ($router !== null) {
+            $cmd[] = $router;
+        }
         $nul = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
         $this->proc = proc_open($cmd, [0 => ['pipe', 'r'], 1 => ['file', $nul, 'w'], 2 => ['file', $nul, 'w']], $this->pipes, null, $env + getenv());
         if (!is_resource($this->proc)) {

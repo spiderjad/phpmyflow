@@ -164,7 +164,7 @@ for f in server/api.php server/src/*.php; do php -l "$f"; done
 scripts/build-release.sh                     # dist zip (no config.php, no data/; releases are built by .github/workflows/release.yml on a v* tag)
 cd site && npm run build                      # website → site/dist (scripts/build-site.ps1 → site-dist.zip; docs/site-deploy.md)
 php scripts/demo-reset.php [config]          # public demo: drop everything in the demo db and reload docker/demo.sql (daily cron; docs/demo-setup.md)
-scripts/serve-lan.ps1 / serve-lan.sh         # serve on the LAN (checks PHP, builds the UI, firewall hint); php -S … -t server scripts/lan-router.php only serves the UI and api.php
+scripts/serve-lan.ps1 / serve-lan.sh         # serve on the LAN (checks PHP, builds the UI, firewall hint); php -S … -t server scripts/lan-router.php serves the UI and api.php itself (never hands a path back to php -S)
 ```
 
 Locale key parity:
