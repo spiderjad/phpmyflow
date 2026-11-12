@@ -42,4 +42,4 @@ Ver la sección "Enable the assistant" del [README en inglés](README.md#enable-
 
 ## Licencia
 
-[GNU AGPL-3.0](LICENSE). Si ofreces a otras personas una copia modificada, la AGPL pide que les des acceso a su código fuente: pon `source_url` en `config.php` (aparece en la pantalla de acceso).
+Copyright (C) 2026 Diego Pennisi. Con licencia [GNU AGPL-3.0](LICENSE). Si ofreces a otras personas una copia modificada, la AGPL pide que les des acceso a su código fuente: pon `source_url` en `config.php` (aparece en la pantalla de acceso).

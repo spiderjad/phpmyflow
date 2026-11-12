@@ -133,4 +133,4 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 ## License
 
-[GNU AGPL-3.0](LICENSE). If you run a modified copy for other people, the AGPL asks you to offer them its source: set `source_url` in `config.php` (shown on the sign-in screen).
+Copyright (C) 2026 Diego Pennisi. Licensed under the [GNU AGPL-3.0](LICENSE). If you run a modified copy for other people, the AGPL asks you to offer them its source: set `source_url` in `config.php` (shown on the sign-in screen).
