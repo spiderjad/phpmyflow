@@ -14,11 +14,37 @@ final class Jobs
     public static function dir(): string
     {
         $base = (string) (pmf_config()['import_dir'] ?? '') ?: sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phpmyflow-import';
-        $dir = rtrim($base, '/\\') . DIRECTORY_SEPARATOR . substr(hash('sha256', session_id() . '|' . Auth::csrfToken()), 0, 24);
-        if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) {
-            throw new ApiError('import_dir', 'Cannot create the temporary folder for imports', 500);
-        }
+        $dir = self::privateDir(rtrim($base, '/\\') . DIRECTORY_SEPARATOR . substr(hash('sha256', session_id() . '|' . Auth::csrfToken()), 0, 24));
         self::cleanup(dirname($dir));
+        return $dir;
+    }
+
+    /**
+     * $dir and its parent, created 0700, or refused when one already exists and
+     * is not ours and private: a link, owned by another user, or open to group /
+     * others (the default base is in the shared temp dir, where anyone could
+     * have prepared it). Owner and mode are checked where POSIX has them.
+     */
+    public static function privateDir(string $dir): string
+    {
+        foreach ([dirname($dir), $dir] as $d) {
+            if (is_link($d)) {
+                throw new ApiError('import_dir', 'The temporary folder is not private', 500);
+            }
+            if (!is_dir($d)) {
+                if (!@mkdir($d, 0700) && !is_dir($d)) {
+                    throw new ApiError('import_dir', 'Cannot create the temporary folder for imports', 500);
+                }
+                @chmod($d, 0700);
+            }
+            clearstatcache(true, $d);
+            if (DIRECTORY_SEPARATOR === '/') {
+                $euid = function_exists('posix_geteuid') ? posix_geteuid() : getmyuid();
+                if (is_link($d) || fileowner($d) !== $euid || (fileperms($d) & 0077) !== 0) {
+                    throw new ApiError('import_dir', 'The temporary folder is not private', 500);
+                }
+            }
+        }
         return $dir;
     }
 

@@ -38,7 +38,7 @@ server/                 PHP backend + build output (this folder is the release)
   src/Ddl.php           database-level DDL from specs: databases, CREATE TABLE, rename, copy (rows in batches, FKs), truncate/drop + impact, overview
   src/Privileges.php    SHOW GRANTS parser (global, db LIKE patterns, table); roles = unknown (null)
   src/Guard.php         API always JSON: error/exception/shutdown handlers, incident ids, onFatal hooks (save job state)
-  src/Jobs.php          per-session private temp folder for jobs (24 h cleanup), step budget ('job_step_seconds'), atomic state files
+  src/Jobs.php          per-session private temp folder for jobs (0700; an existing folder that is a link, not ours or open to others is refused; 24 h cleanup), step budget ('job_step_seconds'), atomic state files
   src/ExportJob.php     export as a job of short steps: plan in 3 queries, units (header, structure, ~4 MB row batch, views…), state + file size saved so a cut step resumes exactly; sql(.gz) / csv / json / xlsx
   src/ZipWriter.php     stored ZIP written across requests (CRC context saved in state, headers patched), no ZipArchive / zlib
   src/Export.php        viewSql() (no DEFINER, no database qualifier)
