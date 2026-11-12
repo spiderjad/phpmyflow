@@ -78,6 +78,8 @@ jobs:
           <?php
           return [
               'servers' => [['label' => 'Sample (CI)', 'host' => '127.0.0.1', 'port' => 3307]],
+              // Like local development: the login tests use "Other server…" (php -S listens on 127.0.0.1 only).
+              'allow_custom_host' => true,
               'login_max_attempts' => 1000,
           ];
           PHP
