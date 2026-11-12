@@ -17,7 +17,7 @@ export const AUTHOR = { name: 'spiderjad', url: 'https://github.com/spiderjad' }
  * (docs/site-deploy.md, "Turn on the demo").
  */
 export const DEMO_URL = 'https://phpmyflow.spiderjad.com/demo/';
-export const DEMO_ENABLED = false;
+export const DEMO_ENABLED = true;
 
 /** Shown in the footer and the JSON-LD (null would show "License: TBD"). */
 export const LICENSE: { name: string; url: string } | null = { name: 'AGPL-3.0', url: `${REPO_URL}/blob/main/LICENSE` };
