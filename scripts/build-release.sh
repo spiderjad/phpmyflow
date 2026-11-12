@@ -12,8 +12,10 @@ rm -rf server/assets server/index.html "dist/${NAME}" "dist/${NAME}.zip"
 
 mkdir -p "dist/${NAME}"
 cp -R server/. "dist/${NAME}/"
-rm -f "dist/${NAME}/config.php"
-cp README.md "dist/${NAME}/README.md"
+# Never ship local settings or runtime data (Monitor history, locks): the app
+# creates data/ with its deny rules when it needs it.
+rm -rf "dist/${NAME}/config.php" "dist/${NAME}/data"
+cp README.md LICENSE "dist/${NAME}/"
 
 (cd dist && zip -qr "${NAME}.zip" "${NAME}")
 rm -rf "dist/${NAME}"

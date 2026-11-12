@@ -4,7 +4,7 @@ Modern, open source replacement for phpMyAdmin (MySQL/MariaDB). Public project: 
 
 ## Product rules (do not break)
 
-1. **Runs wherever phpMyAdmin runs.** The server is plain PHP 8.1+ with only `pdo_mysql` and `openssl`. No Composer packages, no `mbstring`, no `curl`, no URL rewriting. Use the helpers in `server/src/bootstrap.php` (`pmf_substr`, `pmf_is_utf8`) instead of `mb_*`.
+1. **Runs wherever phpMyAdmin runs.** The server is plain PHP 8.1+ with only `pdo_mysql` and `openssl` (8.1 is the floor, still common on shared hosting; docs recommend 8.3+ because 8.1 gets no security fixes, and CI tests 8.1 and 8.3). No Composer packages, no `mbstring`, no `curl`, no URL rewriting. Use the helpers in `server/src/bootstrap.php` (`pmf_substr`, `pmf_is_utf8`) instead of `mb_*`.
 2. **The release is just the `server/` folder** (the UI is built into it). Node is a dev-only dependency.
 3. **The assistant never executes SQL.** It only returns text to the editor. Never send row data to the AI provider, only schema and EXPLAIN output.
 4. **The API always answers JSON.** `Guard::install()` (first line of api.php): display_errors off, output buffered, warnings to the PHP log, exceptions and fatals (time limit, memory) → `{error: {code, message, details: {incident}}}`. Nothing is ever echoed before `Http::json()`; long work runs as jobs of short steps (see Export/Import), never one long request.
@@ -105,7 +105,7 @@ scripts/build-release.sh  builds dist/phpmyflow-<version>.zip
 
 | Action | Method | Notes |
 |---|---|---|
-| `session` | GET | csrf token, auth info, servers (+ `color`, `env` from config.php), readOnly, ai enabled, `idleSeconds`, `ui` defaults + `uiLocked` |
+| `session` | GET | version, `sourceUrl` (AGPL link), csrf token, auth info, servers (+ `color`, `env` from config.php), readOnly, ai enabled, `idleSeconds`, `ui` defaults + `uiLocked` |
 | `keepalive` | GET | renews the session ("Stay signed in"), returns `idleSeconds` |
 | `login` / `logout` / `login_test` | POST | `ssl` {enabled, verify, ca label} for custom hosts or `ssl_choice` servers; `login_test` connects without a session (version, cipher). Connection errors carry `details` {host, port, mysqlCode, serverMessage, seenFrom?}; only 1045 counts for the rate limit |
 | `databases`, `tables`, `schema` | GET | `databases`/`tables` include sizes (`databases` also `timeZone` for date tooltips); `schema` = tables → columns + declared FKs + `inferredKeys`, plus a flat `relations` list (`declared` / `inferred`) and `polymorphic` pairs (itemtype + items_id: never inferred as a FK) |
@@ -161,7 +161,7 @@ php tests/php/run.php                        # PHP tests (no Composer); DB tests
 cd web && npm run e2e                        # Playwright (needs php -S + docker/sample.sql; see web/playwright.config.ts)
 cd web && npm run build                      # writes server/index.html + server/assets
 for f in server/api.php server/src/*.php; do php -l "$f"; done
-scripts/build-release.sh                     # dist zip
+scripts/build-release.sh                     # dist zip (no config.php, no data/; releases are built by .github/workflows/release.yml on a v* tag)
 cd site && npm run build                      # website → site/dist (scripts/build-site.ps1 → site-dist.zip; docs/site-deploy.md)
 scripts/serve-lan.ps1 / serve-lan.sh         # serve on the LAN (checks PHP, builds the UI, firewall hint); php -S … -t server scripts/lan-router.php only serves the UI and api.php
 ```
@@ -191,8 +191,8 @@ Panel look from the spider-ui system (Vercel-like, monochrome). Themes (Monochro
 5. ~~Virtualized grid and keyboard navigation~~ (done: DataGrid virtualizes from 500 rows, fixed row height, no extra dependency).
 6. ~~Editor tabs~~ (done: `lib/tabs.svelte.ts` + `SqlTabs.svelte`, one EditorView with an EditorState per tab, saved per user@host) and ~~dated history~~ (done: `lib/history.ts`). Still open: named saved queries.
 7. Two-factor login (TOTP) as an option.
-8. GitHub Actions: php -l, svelte-check, build, locale parity; release workflow that attaches the zip.
+8. ~~GitHub Actions~~ (done: `ci.yml` = PHP 8.1 + 8.3 tests, web check/build/parity, e2e on MariaDB, site build; `release.yml` = push a `v*` tag matching PMF_VERSION → clean build, zip checked (no config.php / data/), GitHub release with `.github/release-notes.md`, 0.x as pre-release).
 9. PostgreSQL driver behind an interface in `server/src/Drivers/`.
 10. ~~DB tools phases A, B, C~~ (done: database menu/overview/export/import; views, routines, triggers, events; maintenance, server text search, bulk editor, test data).
 
-Before publishing: choose the license (MIT vs AGPL-3.0), add LICENSE, set up the public read-only demo with the `demo` user from `docker/sample.sql`.
+License: AGPL-3.0 (LICENSE). The sign-in screen links to `source_url` (config) so every user can get the source. Still to do before announcing: the public read-only demo with the `demo` user from `docker/sample.sql`.

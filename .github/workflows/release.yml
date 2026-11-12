@@ -1,0 +1,41 @@
+name: Release
+# Push a tag like v0.1.0 → build the UI from a clean checkout, pack server/
+# (scripts/build-release.sh) and publish a GitHub release with the zip.
+# 0.x versions are marked as pre-releases.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Tag matches the version in server/src/bootstrap.php
+        run: |
+          v=$(sed -n "s/^const PMF_VERSION = '\(.*\)';/\1/p" server/src/bootstrap.php)
+          test "v$v" = "$GITHUB_REF_NAME" || { echo "Tag $GITHUB_REF_NAME but PMF_VERSION is $v"; exit 1; }
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+      - name: Build the zip
+        run: bash scripts/build-release.sh
+      - name: Check the zip contents
+        run: |
+          z="dist/phpmyflow-$VERSION.zip"
+          unzip -l "$z"
+          unzip -l "$z" | grep -q "phpmyflow-$VERSION/index.html"
+          unzip -l "$z" | grep -q "phpmyflow-$VERSION/LICENSE"
+          ! unzip -l "$z" | grep -E "/config\.php$|/data/"
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pre=""; case "$VERSION" in 0.*) pre="--prerelease";; esac
+          gh release create "$GITHUB_REF_NAME" "dist/phpmyflow-$VERSION.zip" $pre --title "phpMyFlow $VERSION" --notes-file .github/release-notes.md
