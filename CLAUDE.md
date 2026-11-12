@@ -69,7 +69,7 @@ web/                    Svelte 5 + Vite + TypeScript UI
   src/lib/errors.ts     friendly errors, "did you mean" (Levenshtein)
   src/lib/keyIcons.ts   key icons per column (PK, U, I, FT, SP + position in composite keys, declared FK, inferred relation) for the grid header and Structure; components/KeyIcon.svelte draws them (shape + letter + color + tooltip)
   src/lib/fkLabels.ts   names for FK cells: distinct ids per page, one lookup_many, "Name · id" / broken reference
-  src/lib/grid.ts       column kinds, auto widths, compact dates + full tooltip (zone), special cells (NULL / empty / binary), Yes/No, JSON summary, CSV, virtual range (pure, tested)
+  src/lib/grid.ts       column kinds, auto widths, compact dates + full tooltip (zone), special cells (NULL / empty / binary), Yes/No, JSON summary, CSV (formula-like text neutralized for spreadsheets), virtual range (pure, tested)
   src/lib/sensitive.ts  sensitive columns: name patterns (Settings → Data) + bcrypt/argon values; masked in grid and detail until revealed, copy warns
   src/lib/fuzzy.ts      fuzzy table filter, common prefix detection
   src/lib/prefs.svelte.ts  localStorage prefs: density, sidebar width, pinned tables, table sort
@@ -156,7 +156,7 @@ Errors: `{ error: { code, message, details } }`. `code` is a stable key translat
 cd server && php -S 127.0.0.1:8080          # API
 cd web && npm run dev                        # UI on :5173 (proxies api.php)
 cd web && npm run check                      # svelte-check, must be 0 errors / 0 warnings
-cd web && npm test                           # Vitest unit tests (src/**/*.test.ts)
+cd web && npm test                           # Vitest unit tests (src/**/*.test.ts and tests/security/*.test.ts)
 php tests/php/run.php                        # PHP tests (no Composer), then tests/security (one regression test per security fix); DB tests use PMF_TEST_DB=host:port:user:pass (default docker sample on 3307); some start their own php -S (tests/php/support.php)
 cd web && npm run e2e                        # Playwright (needs php -S + docker/sample.sql; see web/playwright.config.ts)
 cd web && npm run build                      # writes server/index.html + server/assets

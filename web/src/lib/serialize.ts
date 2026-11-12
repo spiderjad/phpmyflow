@@ -2,7 +2,7 @@
 // Excel / Google Sheets), JSON, CSV, Markdown, SQL INSERT and an IN (…) list.
 // `undefined` = a hole in a Ctrl+click selection (emitted as empty / null).
 import type { Cell } from './api';
-import { toCsv } from './grid';
+import { spreadsheetSafe, toCsv } from './grid';
 
 type Value = Cell | undefined;
 
@@ -24,12 +24,14 @@ function tsvField(v: Value, numeric: boolean, sep: string): string {
   if (v === null || v === undefined || isBinary(v)) return '';
   let s = String(v);
   if (numeric && sep !== '.' && /^-?\d+(\.\d+)?(e[+-]?\d+)?$/i.test(s)) s = s.replace('.', sep);
+  else s = spreadsheetSafe(s);
   return /[\t\n\r"]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 /**
- * TSV with a header row, ready to paste into a spreadsheet. A single cell
- * is copied as its bare value (no header, no quoting) like spreadsheets do.
+ * TSV with a header row, ready to paste into a spreadsheet (formula-like
+ * text neutralized, see spreadsheetSafe). A single cell is copied as its
+ * bare value (no header, no quoting) like spreadsheets do.
  */
 export function toTsv(cols: SerialColumn[], rows: Value[][], locale: string): string {
   const sep = decimalSeparator(locale);

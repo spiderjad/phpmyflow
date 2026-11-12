@@ -16,7 +16,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 900,
   },
   test: {
-    include: ['src/**/*.test.ts'],
+    // tests/security: regression tests for security fixes (also the PHP ones there).
+    include: ['src/**/*.test.ts', '../tests/security/**/*.test.ts'],
     // theme.test.ts reads the theme CSS as text (?raw) to check contrast.
     css: { include: [/styles[\\/]themes[\\/]/] },
   },
@@ -25,5 +26,7 @@ export default defineConfig({
     proxy: {
       '/api.php': 'http://127.0.0.1:8080',
     },
+    // Vitest loads ../tests/security; the dev server keeps serving web/ only.
+    ...(process.env.VITEST ? { fs: { allow: ['..'] } } : {}),
   },
 });

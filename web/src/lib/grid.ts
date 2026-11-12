@@ -182,10 +182,19 @@ export function formatDateFull(raw: string, kind: ColumnKind, locale: string, ti
   }
 }
 
-/** RFC 4180 CSV (comma, CRLF-safe quoting). Binary cells are left empty. */
+/**
+ * Text a spreadsheet would run as a formula (starting with = + - @, tab or CR)
+ * gets a leading "'", so database content never becomes a live formula.
+ * Numbers ("-5", "+3.5", "1e3") are left alone.
+ */
+export function spreadsheetSafe(s: string): string {
+  return /^[=+\-@\t\r]/.test(s) && !/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s) ? `'${s}` : s;
+}
+
+/** RFC 4180 CSV (comma, CRLF-safe quoting) for spreadsheets. Binary cells are left empty. */
 export function toCsv(columns: { name: string }[], rows: Cell[][]): string {
   const esc = (v: Cell) => {
-    const s = v === null || typeof v === 'object' ? '' : String(v);
+    const s = spreadsheetSafe(v === null || typeof v === 'object' ? '' : String(v));
     return /[",\n\r;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   return [columns.map((c) => esc(c.name)).join(','), ...rows.map((r) => r.map(esc).join(','))].join('\r\n');
