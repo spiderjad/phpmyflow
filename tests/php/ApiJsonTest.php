@@ -18,6 +18,19 @@ function faultServer(): array
     return [$srv, new TestClient($srv->url)];
 }
 
+/**
+ * Does this PHP run shutdown functions after "Allowed memory size exhausted"?
+ * The official builds do; some patched ones (ondrej PHP 8.1 on Ubuntu) end the
+ * process at once, so no handler can turn the fatal into JSON.
+ */
+function shutdownRunsAfterOom(): bool
+{
+    $code = 'register_shutdown_function(function () { echo "SHUTDOWN_RAN"; });'
+        . 'ini_set("memory_limit", "16M"); $x = str_repeat("x", 64 * 1024 * 1024);';
+    $out = (string) shell_exec(escapeshellarg(PHP_BINARY) . ' -d display_errors=0 -r ' . escapeshellarg($code) . ' 2>&1');
+    return str_contains($out, 'SHUTDOWN_RAN');
+}
+
 function assertCleanJson(TestClient $c, string $query): array
 {
     $d = $c->json('GET', $query);
@@ -59,6 +72,13 @@ return [
     },
 
     'a fatal (memory) is a JSON error' => static function (): void {
+        if (!shutdownRunsAfterOom()) {
+            echo "       (skipped: this PHP build ends the process when memory runs out, before any shutdown function:
+"
+                . "        nothing can answer, the browser sees a dropped connection. Seen on Ubuntu's ondrej PHP 8.1.)
+";
+            return;
+        }
         [, $c] = faultServer();
         $d = assertCleanJson($c, 'a=test_fault&kind=memory');
         eq(500, $c->status);
