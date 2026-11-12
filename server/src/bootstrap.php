@@ -7,7 +7,7 @@ declare(strict_types=1);
  * (shared hosting with PHP 8.1+, pdo_mysql and openssl).
  */
 
-const PMF_VERSION = '0.1.0';
+const PMF_VERSION = '0.1.1';
 
 spl_autoload_register(static function (string $class): void {
     $prefix = 'PhpMyFlow\\';

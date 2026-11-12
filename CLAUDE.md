@@ -92,7 +92,7 @@ web/                    Svelte 5 + Vite + TypeScript UI
   src/components/login/ ServerPicker (grouped listbox in the auth look); Login.svelte uses spider-ui auth-* under data-mode-scope="light"
   src/components/       Login, Sidebar, DataGrid (shared by TableView and SqlView), RowDetail, StructureView, SqlEditor, AiPanel…
   src/locales/*.json    en, es, it, fr
-docker/                 Dockerfile, sample.sql (shop database + read-only demo user)
+docker/                 Dockerfile, sample.sql (shop database + read-only demo user), demo.sql (same data for shared hosting: no CREATE DATABASE/USE/USER/GRANT; tests/php/DemoTest.php keeps it in sync)
 site/                   public website (phpmyflow.spiderjad.com), NOT part of the release: static Astro, en at / and es at /es/ (it/fr prepared in src/i18n/locales.ts)
   src/config.ts         URLs, DEMO_URL + DEMO_ENABLED (false: "Demo · coming soon" disabled), contact, LICENSE (null = "License: TBD"), ANALYTICS hook
   src/i18n/*.ts         all texts (Messages type: a missing key fails astro check); src/components/Home.astro = every section
@@ -105,7 +105,7 @@ scripts/build-release.sh  builds dist/phpmyflow-<version>.zip
 
 | Action | Method | Notes |
 |---|---|---|
-| `session` | GET | version, `sourceUrl` (AGPL link), csrf token, auth info, servers (+ `color`, `env` from config.php), readOnly, ai enabled, `idleSeconds`, `ui` defaults + `uiLocked` |
+| `session` | GET | version, `sourceUrl` (AGPL link), `demoLogin` (read-only installs only), csrf token, auth info, servers (+ `color`, `env` from config.php), readOnly, ai enabled, `idleSeconds`, `ui` defaults + `uiLocked` |
 | `keepalive` | GET | renews the session ("Stay signed in"), returns `idleSeconds` |
 | `login` / `logout` / `login_test` | POST | `ssl` {enabled, verify, ca label} for custom hosts or `ssl_choice` servers; `login_test` connects without a session (version, cipher). Connection errors carry `details` {host, port, mysqlCode, serverMessage, seenFrom?}; only 1045 counts for the rate limit |
 | `databases`, `tables`, `schema` | GET | `databases`/`tables` include sizes (`databases` also `timeZone` for date tooltips); `schema` = tables → columns + declared FKs + `inferredKeys`, plus a flat `relations` list (`declared` / `inferred`) and `polymorphic` pairs (itemtype + items_id: never inferred as a FK) |
@@ -146,7 +146,7 @@ scripts/build-release.sh  builds dist/phpmyflow-<version>.zip
 | `top_queries`, `digest_detail` | GET | performance_schema digests; slow log status when unavailable |
 | `monitor_storage`, `monitor_advisor`, `monitor_deadlock` | GET | sizes, advisor rules, parsed SHOW ENGINE INNODB STATUS |
 | `monitor_history`, `monitor_peak` | GET | collector data (minute ≤ 2 days, hourly beyond), peak snapshots |
-| `monitor_kill`, `monitor_reset_digests`, `monitor_optimize` | POST | confirm in the UI; KILL never targets the monitor connection |
+| `monitor_kill`, `monitor_reset_digests`, `monitor_optimize` | POST | confirm in the UI; KILL never targets the monitor connection; refused when `read_only` |
 
 Errors: `{ error: { code, message, details } }`. `code` is a stable key translated in the UI as `error.<code>`; MySQL errors use `mysql.<errno>` and `mysql.<errno>.hint`.
 
@@ -163,6 +163,7 @@ cd web && npm run build                      # writes server/index.html + server
 for f in server/api.php server/src/*.php; do php -l "$f"; done
 scripts/build-release.sh                     # dist zip (no config.php, no data/; releases are built by .github/workflows/release.yml on a v* tag)
 cd site && npm run build                      # website → site/dist (scripts/build-site.ps1 → site-dist.zip; docs/site-deploy.md)
+php scripts/demo-reset.php [config]          # public demo: drop everything in the demo db and reload docker/demo.sql (daily cron; docs/demo-setup.md)
 scripts/serve-lan.ps1 / serve-lan.sh         # serve on the LAN (checks PHP, builds the UI, firewall hint); php -S … -t server scripts/lan-router.php only serves the UI and api.php
 ```
 
@@ -195,4 +196,4 @@ Panel look from the spider-ui system (Vercel-like, monochrome). Themes (Monochro
 9. PostgreSQL driver behind an interface in `server/src/Drivers/`.
 10. ~~DB tools phases A, B, C~~ (done: database menu/overview/export/import; views, routines, triggers, events; maintenance, server text search, bulk editor, test data).
 
-License: AGPL-3.0 (LICENSE). The sign-in screen links to `source_url` (config) so every user can get the source. Still to do before announcing: the public read-only demo with the `demo` user from `docker/sample.sql`.
+License: AGPL-3.0 (LICENSE). The sign-in screen links to `source_url` (config) so every user can get the source. Public demo: docs/demo-setup.md. `read_only` also opens the MySQL session read-only and refuses KILL / digest reset; `query_timeout_seconds` caps statements; `demo_login` (only with read_only) fills the sign-in form.
