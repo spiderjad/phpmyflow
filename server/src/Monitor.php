@@ -79,21 +79,40 @@ final class Monitor
         return array_column($rows->fetchAll(PDO::FETCH_ASSOC), 'PRIVILEGE_TYPE');
     }
 
+    private function digestsReadable(): bool
+    {
+        try {
+            $this->pdo->query('SELECT 1 FROM performance_schema.events_statements_summary_by_digest LIMIT 1')->fetchAll();
+            return true;
+        } catch (\PDOException) {
+            return false;
+        }
+    }
+
+    /**
+     * A collected peak snapshot as this account could see it live: other
+     * users' processes need PROCESS, query digests need performance_schema.
+     * (The collector may have used a more privileged account.)
+     */
+    public function snapshotForReader(array $snap): array
+    {
+        if (!in_array('PROCESS', $this->globalPrivileges(), true)) {
+            $me = (string) $this->pdo->query("SELECT SUBSTRING_INDEX(USER(), '@', 1)")->fetchColumn();
+            $snap['processes'] = array_values(array_filter((array) ($snap['processes'] ?? []), static fn ($p) => is_array($p) && ($p['user'] ?? null) === $me));
+        }
+        if (!$this->digestsReadable()) {
+            $snap['digests'] = [];
+        }
+        return $snap;
+    }
+
     public function capabilities(): array
     {
         $version = (string) $this->pdo->query('SELECT VERSION()')->fetchColumn();
         $mariadb = stripos($version, 'mariadb') !== false;
         $ps = (int) $this->pdo->query('SELECT @@performance_schema')->fetchColumn() === 1;
         $privs = $this->globalPrivileges();
-        $psReadable = false;
-        if ($ps) {
-            try {
-                $this->pdo->query('SELECT 1 FROM performance_schema.events_statements_summary_by_digest LIMIT 1')->fetchAll();
-                $psReadable = true;
-            } catch (\PDOException) {
-                $psReadable = false;
-            }
-        }
+        $psReadable = $ps && $this->digestsReadable();
         $cfg = pmf_config();
         return [
             'flavor' => $mariadb ? 'mariadb' : 'mysql',

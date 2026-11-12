@@ -232,6 +232,7 @@ try {
             if (!$peak) {
                 throw new ApiError('not_found', 'Peak not found', 404);
             }
+            $peak['snapshot'] = Monitor::forSession()->snapshotForReader((array) ($peak['snapshot'] ?? []));
             Http::json($peak);
 
         case 'ai':
@@ -864,9 +865,11 @@ function monitorHistory(): array
         }
         return ['resolution' => 'hour', 'ts' => array_column($rows, 'ts'), 'series' => $series, 'max' => $max];
     };
+    // Sizes were collected for every database: keep the ones this account can see.
+    $visible = array_flip(array_column(Db::all('SELECT SCHEMA_NAME AS name FROM information_schema.SCHEMATA'), 'name'));
     $out = $load($from, $to) + [
         'peaks' => $store->peaks($server, $from, $to),
-        'sizes' => $store->sizes($server, $from, $to),
+        'sizes' => array_values(array_filter($store->sizes($server, $from, $to), static fn ($s) => isset($visible[$s['db']]))),
         'collector' => Collector::status(),
     ];
     if (Http::input('compare', '0') === '1') {
