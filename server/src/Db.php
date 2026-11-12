@@ -138,6 +138,29 @@ final class Db
         return '`' . str_replace('`', '``', $name) . '`';
     }
 
+    /**
+     * EXPLAIN that never runs the statement. SQL with an executable comment is
+     * not explained (returns null): one can turn EXPLAIN into EXPLAIN ANALYZE,
+     * which executes it. The EXPLAIN itself runs in a transaction that is always
+     * rolled back (not READ ONLY: that refuses even EXPLAIN UPDATE / INSERT).
+     *
+     * @template T
+     * @param callable(\PDOStatement): T $read
+     * @return T|null
+     */
+    public static function explain(PDO $pdo, string $sql, callable $read): mixed
+    {
+        if (Sql::hasExecutableComment($sql)) {
+            return null;
+        }
+        $pdo->exec('START TRANSACTION');
+        try {
+            return $read($pdo->query('EXPLAIN ' . $sql));
+        } finally {
+            $pdo->exec('ROLLBACK');
+        }
+    }
+
     public static function all(string $sql, array $params = []): array
     {
         $st = self::pdo()->prepare($sql);

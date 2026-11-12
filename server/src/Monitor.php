@@ -420,7 +420,8 @@ final class Monitor
                 if ($row['db']) {
                     $this->pdo->exec('USE ' . Db::ident((string) $row['db']));
                 }
-                $explain = self::resultset($this->pdo->query('EXPLAIN ' . $sampleText));
+                // The sample is SQL some other user ran: explained, never executed.
+                $explain = Db::explain($this->pdo, $sampleText, static fn (\PDOStatement $st) => self::resultset($st));
             } catch (\PDOException) {
                 $explain = null;
             }

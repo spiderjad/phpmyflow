@@ -29,6 +29,16 @@ final class Sql
     }
 
     /**
+     * Executable comments (/*! … *\/, /*M! … *\/) are SQL the server runs, so
+     * they can change what a statement does. Also true inside a string literal:
+     * callers only use it to skip work (never to allow it).
+     */
+    public static function hasExecutableComment(string $sql): bool
+    {
+        return (bool) preg_match('~/\*M?!~i', $sql);
+    }
+
+    /**
      * @return array{verb:string, readOnly:bool, destructive:bool, reason:?string}
      */
     public static function classify(string $sql): array

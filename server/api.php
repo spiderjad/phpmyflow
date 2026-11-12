@@ -1089,8 +1089,8 @@ function checkQuery(): array
     }
     try {
         textProtocol();
-        Db::pdo()->query('EXPLAIN ' . $sql)->fetchAll();
-        return ['ok' => true];
+        $explained = Db::explain(Db::pdo(), $sql, static fn (\PDOStatement $st) => $st->fetchAll());
+        return $explained === null ? ['ok' => true, 'skipped' => true] : ['ok' => true];
     } catch (\PDOException $e) {
         $err = Sql::errorFromPdo($e);
         return ['ok' => false, 'error' => ['code' => $err->errorCode, 'message' => $err->getMessage(), 'details' => $err->details]];

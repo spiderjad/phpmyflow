@@ -146,7 +146,8 @@ final class Ai
             return '(not available)';
         }
         try {
-            return json_encode(Db::all('EXPLAIN ' . $sql), JSON_UNESCAPED_UNICODE) ?: '';
+            $rows = Db::explain(Db::pdo(), $sql, static fn (\PDOStatement $st) => $st->fetchAll());
+            return $rows === null ? '(not available)' : (json_encode($rows, JSON_UNESCAPED_UNICODE) ?: '');
         } catch (\PDOException $e) {
             return 'EXPLAIN failed: ' . $e->getMessage();
         }
