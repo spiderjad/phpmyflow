@@ -82,10 +82,8 @@ export const DEMO_ENABLED = false;
 While `DEMO_ENABLED` is `false`, the hero shows **"Demo · coming soon"**
 ("Demo · próximamente") as a disabled button. To turn it on:
 
-1. Install the demo in `public_html/phpmyflow/demo/`: a phpMyFlow release with
-   a `config.php` that lists only the demo server, `'read_only' => true`,
-   `'allow_custom_host' => false`, and a MySQL user with read-only grants
-   (like `demo` in `docker/sample.sql`). Never real data.
+1. Install the demo in `public_html/phpmyflow/demo/`, step by step in
+   `docs/demo-setup.md` (sample data only, read-only, nightly reset).
 2. Set `DEMO_ENABLED = true` (and `DEMO_URL` if the address changes).
 3. Rebuild (`npm run build` or `scripts/build-site.ps1`) and upload as above.
 

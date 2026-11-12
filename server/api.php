@@ -65,6 +65,9 @@ try {
             Http::json([
                 'version' => PMF_VERSION,
                 'sourceUrl' => (string) ($config['source_url'] ?? ''),
+                // Public demo: credentials filled in on the sign-in screen. Only ever sent
+                // when the installation is read-only.
+                'demoLogin' => demoLogin($config),
                 'csrf' => Auth::csrfToken(),
                 'auth' => Auth::publicInfo(),
                 'servers' => array_map(static fn ($s) => [
@@ -192,6 +195,8 @@ try {
             Http::json(Monitor::forSession()->explainThread((int) Http::input('id', 0)));
 
         case 'monitor_kill':
+            // Read-only installations (a public demo shares one MySQL user) never kill.
+            assertWritable();
             Http::json(Monitor::forSession()->kill((int) Http::input('id', 0), (bool) Http::input('queryOnly', true), (int) Http::input('selfId', 0)));
 
         case 'top_queries':
@@ -201,6 +206,7 @@ try {
             Http::json(Monitor::forSession()->digestDetail(Http::requireString('digest')));
 
         case 'monitor_reset_digests':
+            assertWritable();
             Http::json(Monitor::forSession()->resetDigests());
 
         case 'monitor_storage':
@@ -542,6 +548,16 @@ function dbCaps(): array
         'setDefiner' => $p->has('SUPER', null) === true || $p->has('SET_USER_ID', null) === true,
         'createDbGrant' => $p->grant('CREATE', null),
     ];
+}
+
+/** @return array{user:string,password:string}|null */
+function demoLogin(array $config): ?array
+{
+    $d = $config['demo_login'] ?? null;
+    if (empty($config['read_only']) || !is_array($d) || !isset($d['user'], $d['password'])) {
+        return null;
+    }
+    return ['user' => (string) $d['user'], 'password' => (string) $d['password']];
 }
 
 function assertWritable(): void

@@ -101,6 +101,11 @@
   onMount(() => {
     // Start from the last connection used (unless a session just failed somewhere else).
     if (failedIndex < 0 && recent[0]) void useRecent(recent[0], false);
+    // Public demo: the only valid login, filled in (shown only on read-only installations).
+    if (session.demoLogin) {
+      user = session.demoLogin.user;
+      password = session.demoLogin.password;
+    }
     void tick().then(() => (user ? pwInput : userInput)?.focus());
   });
 
@@ -391,6 +396,9 @@
       {/if}
       {#if testOk}
         <p class="auth-banner auth-banner--success lg-banner" role="status">{testOk}</p>
+      {/if}
+      {#if session.demoLogin && !errorText}
+        <p class="auth-banner auth-banner--info lg-banner">{t('login.demo')}</p>
       {/if}
 
       <button class="auth-btn" type="submit" disabled={!!busy || !user}>

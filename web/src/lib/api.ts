@@ -87,6 +87,8 @@ export interface Session {
   version: string;
   /** AGPL-3.0: where to get the source code of this copy (config 'source_url'). */
   sourceUrl?: string;
+  /** Public read-only demo: credentials to fill in on the sign-in screen (config 'demo_login'). */
+  demoLogin?: { user: string; password: string } | null;
   csrf: string;
   auth: { user: string; host: string; port: number; ssl?: boolean } | null;
   /** ssl: the server uses SSL; sslChoice: users may change SSL on the login screen. */

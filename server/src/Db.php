@@ -43,9 +43,41 @@ final class Db
             return true;
         });
         try {
-            return new PDO($dsn, $user, $password, $options);
+            $pdo = new PDO($dsn, $user, $password, $options);
         } finally {
             restore_error_handler();
+        }
+        self::applySessionLimits($pdo);
+        return $pdo;
+    }
+
+    /**
+     * Server-side limits from config.php, set on every connection:
+     *  - 'read_only': the MySQL session itself is read-only (SET SESSION
+     *    TRANSACTION READ ONLY), so a write rejected by the app would also be
+     *    rejected by the server (defense in depth, e.g. for a public demo).
+     *  - 'query_timeout_seconds' (> 0): statements stop after that long
+     *    (MariaDB max_statement_time; MySQL MAX_EXECUTION_TIME, SELECT only).
+     * A server that doesn't know a setting keeps working without it.
+     */
+    private static function applySessionLimits(PDO $pdo): void
+    {
+        $cfg = pmf_config();
+        if (!empty($cfg['read_only'])) {
+            try {
+                $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+            } catch (\PDOException) {
+            }
+        }
+        $timeout = (float) ($cfg['query_timeout_seconds'] ?? 0);
+        if ($timeout > 0) {
+            $mariadb = stripos((string) $pdo->getAttribute(PDO::ATTR_SERVER_VERSION), 'mariadb') !== false;
+            try {
+                $pdo->exec($mariadb
+                    ? 'SET SESSION max_statement_time = ' . sprintf('%.3F', $timeout)
+                    : 'SET SESSION MAX_EXECUTION_TIME = ' . (int) round($timeout * 1000));
+            } catch (\PDOException) {
+            }
         }
     }
 

@@ -50,8 +50,19 @@ return [
     // Seconds to wait for the database server when connecting.
     'connect_timeout_seconds' => (int) $env('PMF_CONNECT_TIMEOUT', 10),
 
-    // Block every statement that writes (INSERT, UPDATE, DDL...).
+    // Block every statement that writes (INSERT, UPDATE, DDL...). The MySQL session
+    // is also opened read-only, and KILL / statistics reset are refused.
     'read_only' => filter_var($env('PMF_READ_ONLY', false), FILTER_VALIDATE_BOOL),
+
+    // Stop any statement after this many seconds (0 = no limit). Useful for a shared
+    // or public installation. MySQL applies it to SELECT only.
+    'query_timeout_seconds' => (float) $env('PMF_QUERY_TIMEOUT', 0),
+
+    // Public demo only: user and password filled in on the sign-in screen, for example
+    // ['user' => 'demo', 'password' => 'demo']. Ignored unless 'read_only' is true.
+    'demo_login' => $env('PMF_DEMO_USER', '') !== ''
+        ? ['user' => (string) $env('PMF_DEMO_USER', ''), 'password' => (string) $env('PMF_DEMO_PASSWORD', '')]
+        : null,
 
     // AGPL-3.0: everyone who uses phpMyFlow can get its source code (link on the
     // sign-in screen). If you run a modified copy, point this to your source.
