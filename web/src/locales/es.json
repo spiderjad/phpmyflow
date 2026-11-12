@@ -20,6 +20,7 @@
   "login.submit": "Entrar",
   "login.connecting": "Conectando…",
   "login.note": "Usa tu usuario de MySQL o MariaDB. La contraseña se guarda cifrada solo durante esta sesión.",
+  "login.source": "Código fuente (AGPL-3.0)",
   "login.ssl": "Usar SSL",
   "login.sslAdvanced": "Opciones SSL avanzadas",
   "login.sslVerify": "Verificar certificado del servidor",

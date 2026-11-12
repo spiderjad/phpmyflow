@@ -97,6 +97,8 @@ if [ -n "$MISSING" ]; then
   Otherwise edit ${INI:-your php.ini (php --ini shows where)} and enable:$(for m in $MISSING; do printf '\n      extension=%s' "$m"; done)"
 fi
 ok "PHP $PHP_VERSION ($PHP) with pdo_mysql and openssl"
+# 8.1 gets no security fixes since 2025-12-31 and 8.2 none after 2026-12-31: it still works, but say so.
+"$PHP" -r 'exit(version_compare(PHP_VERSION, "8.3.0", ">=") ? 0 : 1);'   || warn "PHP $PHP_VERSION no longer gets (or will soon stop getting) security fixes. Use PHP 8.3 or newer when you can."
 
 # --------------------------------------------------------------------- UI
 

@@ -23,6 +23,7 @@ phpMyFlow is a web admin for MySQL and MariaDB. Like phpMyAdmin, it's a folder o
 ## Install on a PHP host
 
 Requirements: PHP 8.1+ with `pdo_mysql` and `openssl`. No Composer, no Node on the server.
+Use PHP 8.3 or newer when you can: 8.1 no longer gets security fixes and 8.2 stops getting them at the end of 2026.
 
 1. Download `phpmyflow-x.y.z.zip` from Releases and unzip it into your site, e.g. `public_html/phpmyflow/`.
 2. Copy `config.sample.php` to `config.php` and set your database server(s).
@@ -117,12 +118,14 @@ Load `docker/sample.sql` into a local MySQL/MariaDB to get the sample data. Buil
 
 ## Roadmap
 
-- Insert rows, import/export (SQL, CSV, JSON), create and alter tables from the UI
-- Command palette (Ctrl+K) and keyboard navigation in the grid
-- Virtualized grid for very large result sets
-- Multiple editor tabs, saved queries
-- PostgreSQL and SQLite drivers
-- Two-factor login
+Done: insert rows, export (SQL, CSV, JSON, Excel) and SQL import in resumable steps, create and alter tables, views, routines, triggers and events, virtualized grid with keyboard navigation, editor tabs and dated history, server monitor.
+
+Next:
+
+- Command palette (Ctrl+K)
+- Named saved queries and CSV import
+- Two-factor login (TOTP)
+- PostgreSQL driver
 
 ## Security
 
@@ -130,4 +133,4 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 ## License
 
-To be decided before the first public release.
+[GNU AGPL-3.0](LICENSE). If you run a modified copy for other people, the AGPL asks you to offer them its source: set `source_url` in `config.php` (shown on the sign-in screen).

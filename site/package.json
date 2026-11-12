@@ -2,6 +2,7 @@
   "name": "phpmyflow-site",
   "private": true,
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "description": "Public website of phpMyFlow (phpmyflow.spiderjad.com): static, built to site/dist/",
   "scripts": {

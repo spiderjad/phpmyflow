@@ -153,6 +153,10 @@ if ($missing.Count -gt 0) {
         "  Also check that extension_dir points to the 'ext' folder, e.g. extension_dir = `"ext`".")
 }
 Write-Ok "PHP $phpVersion ($php) with pdo_mysql and openssl"
+# 8.1 gets no security fixes since 2025-12-31 and 8.2 none after 2026-12-31: it still works, but say so.
+if ([version]($phpVersion -replace '[^0-9.].*$', '') -lt [version]'8.3') {
+    Write-Host "  PHP $phpVersion no longer gets (or will soon stop getting) security fixes. Use PHP 8.3 or newer when you can." -ForegroundColor Yellow
+}
 
 # ---------------------------------------------------------------------- UI
 

@@ -64,6 +64,7 @@ try {
         case 'session':
             Http::json([
                 'version' => PMF_VERSION,
+                'sourceUrl' => (string) ($config['source_url'] ?? ''),
                 'csrf' => Auth::csrfToken(),
                 'auth' => Auth::publicInfo(),
                 'servers' => array_map(static fn ($s) => [

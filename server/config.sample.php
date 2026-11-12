@@ -53,6 +53,10 @@ return [
     // Block every statement that writes (INSERT, UPDATE, DDL...).
     'read_only' => filter_var($env('PMF_READ_ONLY', false), FILTER_VALIDATE_BOOL),
 
+    // AGPL-3.0: everyone who uses phpMyFlow can get its source code (link on the
+    // sign-in screen). If you run a modified copy, point this to your source.
+    'source_url' => (string) $env('PMF_SOURCE_URL', 'https://github.com/spiderjad/phpmyflow'),
+
     // SQL import: uploaded files go to a private temp folder (one per session,
     // deleted at the end or after a day). Prefer a folder outside the web root.
     'import_dir' => $env('PMF_IMPORT_DIR', ''), // '' = system temp dir

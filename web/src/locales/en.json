@@ -20,6 +20,7 @@
   "login.submit": "Sign in",
   "login.connecting": "Connecting…",
   "login.note": "Uses your MySQL or MariaDB user. Your password is stored encrypted only for this session.",
+  "login.source": "Source code (AGPL-3.0)",
   "login.ssl": "Use SSL",
   "login.sslAdvanced": "Advanced SSL options",
   "login.sslVerify": "Verify the server certificate",

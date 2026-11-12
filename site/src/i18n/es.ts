@@ -163,16 +163,16 @@ export const es: Messages = {
         label: 'Instalación',
         cells: [{ text: 'Subir una carpeta' }, { text: 'Subir una carpeta' }, { text: 'Subir un archivo PHP' }],
       },
-      { label: 'Idiomas de la interfaz', cells: [{ text: '4' }, { text: '70+' }, { text: '40+' }] },
+      { label: 'Idiomas de la interfaz', cells: [{ text: '4' }, { text: '98' }, { text: '47' }] },
       { label: 'Madurez', cells: [{ text: 'Nuevo (v0.1)' }, { text: 'Desde 1998' }, { text: 'Desde 2007' }] },
     ],
     footnote:
-      'Comparado con phpMyAdmin 5.2 y Adminer 5 sin plugins adicionales salvo donde se indica. ¿Algo está mal? Abre un issue en GitHub.',
+      'Comparado con phpMyAdmin 5.2 y Adminer 6.3 (noviembre de 2026), sin plugins adicionales salvo donde se indica. ¿Algo está mal? Abre un issue en GitHub.',
   },
   install: {
     eyebrow: 'Instalación',
     title: 'Funcionando en cinco minutos',
-    intro: 'Requisitos: PHP 8.1 o posterior con `pdo_mysql` y `openssl`. Sin Composer, sin Node en el servidor y sin reescritura de URL.',
+    intro: 'Requisitos: PHP 8.1 o posterior con `pdo_mysql` y `openssl` (recomendado 8.3+: las versiones anteriores ya no reciben parches de seguridad). Sin Composer, sin Node en el servidor y sin reescritura de URL.',
     tablist: 'Formas de instalar',
     tabs: [
       {
@@ -276,7 +276,7 @@ export const es: Messages = {
     items: [
       {
         q: '¿Es gratis?',
-        a: 'Sí. phpMyFlow es de código abierto y de uso gratuito. La licencia exacta se definirá antes de la primera versión estable.',
+        a: 'Sí. phpMyFlow es de código abierto con licencia GNU AGPL-3.0: puedes usarlo, estudiarlo y modificarlo gratis. Si ofreces a otras personas una copia modificada, compartes también su código.',
       },
       {
         q: '¿Funciona en mi hosting?',
@@ -288,7 +288,7 @@ export const es: Messages = {
       },
       {
         q: '¿Qué requisitos tiene?',
-        a: 'Un servidor web con PHP 8.1+ (`pdo_mysql` y `openssl`), un servidor MySQL o MariaDB y un navegador reciente. Node.js solo hace falta para compilar desde el código.',
+        a: 'Un servidor web con PHP 8.1+ (`pdo_mysql` y `openssl`; mejor 8.3 o posterior, que sigue recibiendo parches de seguridad), un servidor MySQL o MariaDB y un navegador reciente. Node.js solo hace falta para compilar desde el código.',
       },
       {
         q: '¿Mis datos van a la IA?',

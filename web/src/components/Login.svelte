@@ -408,7 +408,12 @@
       <p class="auth-note">{t('login.note')}</p>
     </form>
   </main>
-  <footer class="auth-footer">phpMyFlow v{session.version}</footer>
+  <footer class="auth-footer">
+    phpMyFlow v{session.version}
+    {#if /^https?:\/\//.test(session.sourceUrl ?? '')}
+      · <a class="lg-source" href={session.sourceUrl} target="_blank" rel="noopener noreferrer">{t('login.source')}</a>
+    {/if}
+  </footer>
 </div>
 
 <style>
@@ -416,6 +421,17 @@
      card, fields and button; this only lays out phpMyFlow's extra pieces.
      Inside the card only --auth-* tokens (the card stays light in both modes);
      on the dark background, colors derive from currentColor of .auth-footer. */
+  /* AGPL-3.0 source link in the footer, on the dark background. */
+  .lg-source {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .lg-source:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
   .lg {
     min-height: 100%;
     /* spider-ui defines these on :root from tokens that flip in dark mode;

@@ -17,4 +17,5 @@ and credited in the release notes unless you prefer otherwise.
 - Keep `allow_custom_host` off and list only the servers you need.
 - Restrict access to the folder (IP allow-list, VPN or HTTP auth).
 - Serve it over HTTPS only.
+- Run a PHP version that still gets security fixes (8.3 or newer; 8.1 gets none since 2025-12-31, 8.2 none after 2026-12-31).
 - Log in with a MySQL user that has only the privileges you need; use `read_only` for viewers.

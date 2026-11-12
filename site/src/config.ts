@@ -19,8 +19,8 @@ export const AUTHOR = { name: 'spiderjad', url: 'https://github.com/spiderjad' }
 export const DEMO_URL = 'https://phpmyflow.spiderjad.com/demo/';
 export const DEMO_ENABLED = false;
 
-/** null until the license is chosen: the footer shows "License: TBD". */
-export const LICENSE: { name: string; url: string } | null = null;
+/** Shown in the footer and the JSON-LD (null would show "License: TBD"). */
+export const LICENSE: { name: string; url: string } | null = { name: 'AGPL-3.0', url: `${REPO_URL}/blob/main/LICENSE` };
 
 /**
  * Analytics: none, and no cookies. To add a privacy-friendly script later,

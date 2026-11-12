@@ -21,6 +21,7 @@ phpMyFlow es un administrador web para MySQL y MariaDB. Como phpMyAdmin, es una 
 ## Instalar en un hosting PHP
 
 Requisitos: PHP 8.1+ con `pdo_mysql` y `openssl`. Sin Composer ni Node en el servidor.
+Si puedes, usa PHP 8.3 o posterior: 8.1 ya no recibe parches de seguridad y 8.2 deja de recibirlos a fines de 2026.
 
 1. Descarga `phpmyflow-x.y.z.zip` desde Releases y descomprímelo en tu sitio, por ejemplo `public_html/phpmyflow/`.
 2. Copia `config.sample.php` como `config.php` y configura tus servidores.
@@ -38,3 +39,7 @@ docker compose up --build
 ## Activar el asistente
 
 Ver la sección "Enable the assistant" del [README en inglés](README.md#enable-the-assistant). La clave queda en el servidor; al proveedor se le envía el esquema (nombres y tipos), nunca los datos de las filas.
+
+## Licencia
+
+[GNU AGPL-3.0](LICENSE). Si ofreces a otras personas una copia modificada, la AGPL pide que les des acceso a su código fuente: pon `source_url` en `config.php` (aparece en la pantalla de acceso).

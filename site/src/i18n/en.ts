@@ -163,16 +163,16 @@ export const en: Messages = {
         label: 'Installation',
         cells: [{ text: 'Upload a folder' }, { text: 'Upload a folder' }, { text: 'Upload one PHP file' }],
       },
-      { label: 'Interface languages', cells: [{ text: '4' }, { text: '70+' }, { text: '40+' }] },
+      { label: 'Interface languages', cells: [{ text: '4' }, { text: '98' }, { text: '47' }] },
       { label: 'Maturity', cells: [{ text: 'New (v0.1)' }, { text: 'Since 1998' }, { text: 'Since 2007' }] },
     ],
     footnote:
-      'Compared with phpMyAdmin 5.2 and Adminer 5 without extra plugins unless noted. Something wrong? Open an issue on GitHub.',
+      'Compared with phpMyAdmin 5.2 and Adminer 6.3 (November 2026), without extra plugins unless noted. Something wrong? Open an issue on GitHub.',
   },
   install: {
     eyebrow: 'Install',
     title: 'Running in five minutes',
-    intro: 'Requirements: PHP 8.1 or newer with `pdo_mysql` and `openssl`. No Composer, no Node on the server, no URL rewriting.',
+    intro: 'Requirements: PHP 8.1 or newer with `pdo_mysql` and `openssl` (8.3+ recommended: older versions no longer get security fixes). No Composer, no Node on the server, no URL rewriting.',
     tablist: 'Ways to install',
     tabs: [
       {
@@ -276,7 +276,7 @@ export const en: Messages = {
     items: [
       {
         q: 'Is it free?',
-        a: 'Yes. phpMyFlow is open source and free to use. The exact license will be chosen before the first stable release.',
+        a: 'Yes. phpMyFlow is open source under the GNU AGPL-3.0: free to use, study and change. If you offer a modified copy to other people, you share its source too.',
       },
       {
         q: 'Will it work on my hosting?',
@@ -288,7 +288,7 @@ export const en: Messages = {
       },
       {
         q: 'What are the requirements?',
-        a: 'A web server with PHP 8.1+ (`pdo_mysql` and `openssl`), a MySQL or MariaDB server and a recent browser. Node.js is only needed to build from source.',
+        a: 'A web server with PHP 8.1+ (`pdo_mysql` and `openssl`; better 8.3 or newer, which still gets security fixes), a MySQL or MariaDB server and a recent browser. Node.js is only needed to build from source.',
       },
       {
         q: 'Does my data go to the AI?',
