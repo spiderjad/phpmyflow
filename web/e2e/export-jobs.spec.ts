@@ -125,28 +125,33 @@ test('a step that hangs shows "Looks stopped"; "Retry this step" sends it again'
 
 test('the server dies half way: the reason, how much was done, and "Resume from <table>" finish the same file', async ({ page }) => {
   test.setTimeout(300_000);
-  // Deterministic cut on any machine: once some progress shows, the next step is
-  // held in the browser until the server is stopped, so it fails half way.
+  // Deterministic cut on any machine: the interceptor reads each step's answer; after
+  // the first one that reports progress and is still running, the next step is held
+  // in the browser until the server is stopped, so it fails half way.
   let armed = false;
+  let cut = false;
   let release!: () => void;
   const killed = new Promise<void>((r) => (release = r));
   let held!: () => void;
   const holding = new Promise<void>((r) => (held = r));
   await page.route('**/api.php?a=export_step*', async (route) => {
-    if (armed) {
-      armed = false;
+    if (armed && !cut) {
+      cut = true;
       held();
       await killed;
-    } else {
-      await new Promise((r) => setTimeout(r, 300)); // time for the test to see each percentage
+      await route.continue().catch(() => {});
+      return;
     }
-    await route.continue().catch(() => {});
+    const response = await route.fetch().catch(() => null);
+    if (!response) return route.abort().catch(() => {});
+    const body = await response.json().catch(() => ({}));
+    if (!cut && body.status === 'running' && body.progress > 0) armed = true;
+    await route.fulfill({ response, json: body }).catch(() => {});
   });
   const panel = await exportBig(page);
   const bar = panel.getByRole('progressbar');
-  await expect(async () => expect(Number(await bar.getAttribute('aria-valuenow'))).toBeGreaterThan(0)).toPass({ timeout: 120_000, intervals: [100] });
-  armed = true;
   await holding;
+  await expect(async () => expect(Number(await bar.getAttribute('aria-valuenow'))).toBeGreaterThan(0)).toPass({ timeout: 10_000 });
   expect(Number(await bar.getAttribute('aria-valuenow'))).toBeLessThan(100);
   stopServer();
   release();
