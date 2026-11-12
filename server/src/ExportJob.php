@@ -369,7 +369,7 @@ final class ExportJob
                     $this->zip->begin('xl/worksheets/sheet' . ($c['ti'] + 1) . '.xml');
                     $this->out('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" . '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>');
                 } elseif ($this->zip) {
-                    $this->zip->begin($tb['name'] . '.' . $this->s['format']);
+                    $this->zip->begin(self::zipEntryName($tb['name'], $c['ti']) . '.' . $this->s['format']);
                 }
                 if ($this->s['format'] === 'json') {
                     $this->out("[\n");
@@ -792,6 +792,17 @@ final class ExportJob
             : (in_array($t, ['binary', 'varbinary', 'tinyblob', 'blob', 'mediumblob', 'longblob', 'geometry', 'point', 'linestring', 'polygon', 'multipoint', 'multilinestring', 'multipolygon', 'geometrycollection'], true) ? 'bin'
             : ($t === 'bit' ? 'bit' : 'str'));
         return ['name' => $name, 'kind' => $kind, 'generated' => Schema::isGenerated($extra)];
+    }
+
+    /**
+     * A table name as a plain file name inside the ZIP: no "/", "\", control or
+     * reserved characters, no leading dots (so never "../"). A changed name gets
+     * the table's position, so two tables never share an entry.
+     */
+    private static function zipEntryName(string $table, int $index): string
+    {
+        $clean = (string) preg_replace('~[\\\\/\x00-\x1f\x7f:*?"<>|]|^\.+~', '_', $table);
+        return $clean === $table && $clean !== '' ? $clean : $clean . '-' . ($index + 1);
     }
 
     private static function stateFile(string $dir, string $id): string
