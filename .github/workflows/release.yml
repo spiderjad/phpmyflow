@@ -1,7 +1,8 @@
 name: Release
 # Push a tag like v0.1.0 → build the UI from a clean checkout, pack server/
 # (scripts/build-release.sh) and publish a GitHub release with the zip.
-# 0.x versions are marked as pre-releases.
+# Never a pre-release: the website's "Download" points to releases/latest,
+# which skips pre-releases. The notes say when a version is early.
 on:
   push:
     tags: ['v*']
@@ -37,5 +38,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          pre=""; case "$VERSION" in 0.*) pre="--prerelease";; esac
-          gh release create "$GITHUB_REF_NAME" "dist/phpmyflow-$VERSION.zip" $pre --title "phpMyFlow $VERSION" --notes-file .github/release-notes.md
+          gh release create "$GITHUB_REF_NAME" "dist/phpmyflow-$VERSION.zip" --latest --title "phpMyFlow $VERSION" --notes-file .github/release-notes.md

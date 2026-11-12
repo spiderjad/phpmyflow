@@ -191,7 +191,7 @@ Panel look from the spider-ui system (Vercel-like, monochrome). Themes (Monochro
 5. ~~Virtualized grid and keyboard navigation~~ (done: DataGrid virtualizes from 500 rows, fixed row height, no extra dependency).
 6. ~~Editor tabs~~ (done: `lib/tabs.svelte.ts` + `SqlTabs.svelte`, one EditorView with an EditorState per tab, saved per user@host) and ~~dated history~~ (done: `lib/history.ts`). Still open: named saved queries.
 7. Two-factor login (TOTP) as an option.
-8. ~~GitHub Actions~~ (done: `ci.yml` = PHP 8.1 + 8.3 tests, web check/build/parity, e2e on MariaDB, site build; `release.yml` = push a `v*` tag matching PMF_VERSION → clean build, zip checked (no config.php / data/), GitHub release with `.github/release-notes.md`, 0.x as pre-release).
+8. ~~GitHub Actions~~ (done: `ci.yml` = PHP 8.1 + 8.3 tests, web check/build/parity, e2e on MariaDB, site build; `release.yml` = push a `v*` tag matching PMF_VERSION → clean build, zip checked (no config.php / data/), GitHub release with `.github/release-notes.md`, always marked latest: the website's Download uses releases/latest).
 9. PostgreSQL driver behind an interface in `server/src/Drivers/`.
 10. ~~DB tools phases A, B, C~~ (done: database menu/overview/export/import; views, routines, triggers, events; maintenance, server text search, bulk editor, test data).
 
