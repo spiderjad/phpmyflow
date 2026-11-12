@@ -125,16 +125,31 @@ test('a step that hangs shows "Looks stopped"; "Retry this step" sends it again'
 
 test('the server dies half way: the reason, how much was done, and "Resume from <table>" finish the same file', async ({ page }) => {
   test.setTimeout(300_000);
-  // The export is fast locally: slow each step's answer so the server can be killed half way.
+  // Deterministic cut on any machine: once some progress shows, the next step is
+  // held in the browser until the server is stopped, so it fails half way.
+  let armed = false;
+  let release!: () => void;
+  const killed = new Promise<void>((r) => (release = r));
+  let held!: () => void;
+  const holding = new Promise<void>((r) => (held = r));
   await page.route('**/api.php?a=export_step*', async (route) => {
-    await new Promise((r) => setTimeout(r, 600));
+    if (armed) {
+      armed = false;
+      held();
+      await killed;
+    } else {
+      await new Promise((r) => setTimeout(r, 300)); // time for the test to see each percentage
+    }
     await route.continue().catch(() => {});
   });
   const panel = await exportBig(page);
   const bar = panel.getByRole('progressbar');
-  await expect(async () => expect(Number(await bar.getAttribute('aria-valuenow'))).toBeGreaterThanOrEqual(5)).toPass({ timeout: 120_000 });
+  await expect(async () => expect(Number(await bar.getAttribute('aria-valuenow'))).toBeGreaterThan(0)).toPass({ timeout: 120_000, intervals: [100] });
+  armed = true;
+  await holding;
   expect(Number(await bar.getAttribute('aria-valuenow'))).toBeLessThan(100);
   stopServer();
+  release();
   await expect(panel.getByRole('alert')).toContainText('Can’t reach the server', { timeout: 30_000 });
   await expect(panel.getByRole('alert')).toContainText(/\d+ of 142 tables were exported\./);
   const resume = panel.getByRole('button', { name: /^Resume from wp_/ });
