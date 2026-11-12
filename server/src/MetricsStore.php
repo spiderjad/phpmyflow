@@ -60,8 +60,45 @@ abstract class MetricsStore
 
     public static function defaultDir(): string
     {
-        $configured = pmf_config()['monitor_data_dir'] ?? '';
-        return $configured !== '' ? (string) $configured : dirname(__DIR__) . '/data';
+        $configured = (string) (pmf_config()['monitor_data_dir'] ?? '');
+        return $configured !== '' ? $configured : self::hiddenDir(dirname(__DIR__) . '/data');
+    }
+
+    /**
+     * The default folder (server/data) is inside the web root, where only
+     * .htaccess / web.config keep it private: nginx, Caddy and php -S ignore
+     * them. History lives in a subfolder with a random name made on first use,
+     * so no file has a path anyone can guess. Files from earlier versions are
+     * moved into it.
+     */
+    public static function hiddenDir(string $base): string
+    {
+        $base = rtrim($base, '/\\');
+        self::prepareDir($base);
+        $find = static function () use ($base): ?string {
+            $dirs = array_values(array_filter(glob($base . '/s-*', GLOB_ONLYDIR) ?: [], static fn ($d) => (bool) preg_match('~[/\\\\]s-[a-f0-9]{32}$~', $d)));
+            sort($dirs);
+            return $dirs[0] ?? null;
+        };
+        $dir = $find();
+        if ($dir === null) {
+            $mine = $base . '/s-' . bin2hex(random_bytes(16));
+            if (!@mkdir($mine, 0700)) {
+                throw new ApiError('monitor_storage', 'Cannot create the metrics directory', 500);
+            }
+            // Two first requests at once: both keep the first name in order.
+            $dir = $find() ?? $mine;
+            if ($dir !== $mine) {
+                @rmdir($mine);
+            }
+        }
+        self::prepareDir($dir);
+        foreach (array_merge(glob($base . '/*.jsonl') ?: [], glob($base . '/metrics.sqlite*') ?: [], [$base . '/state.json']) as $old) {
+            if (is_file($old) && !is_file($dir . '/' . basename($old))) {
+                @rename($old, $dir . '/' . basename($old));
+            }
+        }
+        return $dir;
     }
 
     /** Create the directory and block web access to it (Apache, IIS, plus an index). */

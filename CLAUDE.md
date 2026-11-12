@@ -51,7 +51,7 @@ server/                 PHP backend + build output (this folder is the release)
   src/SqlSplitter.php   streaming statement splitter (strings, comments, /*! */, DELIMITER), resumable by offset
   src/Monitor.php       monitor queries, privileges/GRANTs, advisor, deadlock parser
   src/Metrics.php       pure metric math: rates, peaks, hourly aggregation (tests/php)
-  src/MetricsStore.php  history storage: SQLite or JSON Lines fallback, retention
+  src/MetricsStore.php  history storage: SQLite or JSON Lines fallback, retention; default folder server/data/s-<random> (no guessable path)
   src/Collector.php     one collection run (cron or pseudo-cron), alerts webhook
   collect.php           CLI entry for cron
 web/                    Svelte 5 + Vite + TypeScript UI

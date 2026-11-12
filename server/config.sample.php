@@ -108,7 +108,8 @@ return [
     // No cron on the host: take at most one sample per minute while the Monitor is open.
     'monitor_pseudo_cron' => filter_var($env('PMF_MONITOR_PSEUDO_CRON', false), FILTER_VALIDATE_BOOL),
 
-    // Where history is stored ('' = server/data). Prefer a folder outside the web root.
+    // Where history is stored. Prefer a folder outside the web root. '' = a subfolder with a
+    // random name inside server/data (made on first use; earlier history is moved into it).
     'monitor_data_dir' => $env('PMF_MONITOR_DATA_DIR', ''),
 
     // Fixed peak thresholds (otherwise automatic: mean + 3 standard deviations of the last hour).

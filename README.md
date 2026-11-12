@@ -86,7 +86,7 @@ and add it to `config.php` (credentials only live there):
 - **With cron** (preferred): `* * * * * php /path/to/phpmyflow/collect.php >/dev/null 2>&1`. The History panel shows this line with the real path.
 - **Without cron**: set `'monitor_pseudo_cron' => true`. A sample is taken at most once a minute while someone has the Monitor open.
 
-Data goes to `server/data/` (SQLite with `pdo_sqlite`, otherwise daily JSON Lines files). The folder gets `.htaccess` / `web.config` deny rules; better, move it out of the web root with `'monitor_data_dir' => '/var/lib/phpmyflow'`. Retention: 7 days at one-minute resolution, 90 days of hourly aggregates (min, avg, max, p95).
+Data goes to a subfolder with a random name inside `server/data/` (SQLite with `pdo_sqlite`, otherwise daily JSON Lines files). The folders get `.htaccess` / `web.config` deny rules, and the random name keeps the files unguessable on servers that ignore them (nginx, Caddy); better, move it out of the web root with `'monitor_data_dir' => '/var/lib/phpmyflow'`. Retention: 7 days at one-minute resolution, 90 days of hourly aggregates (min, avg, max, p95).
 
 ### Alerts
 
