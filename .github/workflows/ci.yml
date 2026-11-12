@@ -71,8 +71,7 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - name: Load the sample database
         run: mysql -h 127.0.0.1 -P 3307 -uroot -proot < docker/sample.sql
-      - name: PHP tests with a database
-        run: PMF_TEST_DB=127.0.0.1:3307:root:root php tests/php/run.php
+      # Before the PHP tests too: they sign in through api.php, which only allows listed servers.
       - name: Server config for the tests
         run: |
           cat > server/config.php <<'PHP'
@@ -82,6 +81,8 @@ jobs:
               'login_max_attempts' => 1000,
           ];
           PHP
+      - name: PHP tests with a database
+        run: PMF_TEST_DB=127.0.0.1:3307:root:root php tests/php/run.php
       - run: npm ci
         working-directory: web
       - run: npm run build
