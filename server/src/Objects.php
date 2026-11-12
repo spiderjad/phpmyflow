@@ -555,8 +555,8 @@ final class Objects
         $out = '';
         $l = $this->list();
         $add = function (string $kind, string $name) use (&$out, $drop): void {
-            $create = (string) preg_replace('~\sDEFINER=(`[^`]*`|\S+)@(`[^`]*`|\S+)~', '', $this->createCode($kind, $name));
-            $out .= "\n-- $kind " . Db::ident($name) . "\n" . ($drop ? "DROP $kind IF EXISTS " . Db::ident($name) . ";;\n" : '') . rtrim($create, ';') . ";;\n";
+            $create = Export::stripDefiner($this->createCode($kind, $name));
+            $out .= "\n-- $kind " . Export::commentName($name) . "\n" . ($drop ? "DROP $kind IF EXISTS " . Db::ident($name) . ";;\n" : '') . rtrim($create, ';') . ";;\n";
         };
         if ($routines) {
             foreach ($l['procedures'] as $r) {

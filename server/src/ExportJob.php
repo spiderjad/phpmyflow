@@ -262,6 +262,9 @@ final class ExportJob
         if ($this->s['format'] === 'sql') {
             // TIMESTAMP values are dumped in UTC and the header restores UTC on import.
             $this->pdo->exec("SET SESSION time_zone = '+00:00'");
+            // The same sql_mode as the dump header, so quote() escapes values for the
+            // mode the dump is imported with (whatever the server's default mode is).
+            $this->pdo->exec("SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO'");
         }
         try {
             do {
@@ -622,7 +625,7 @@ final class ExportJob
     {
         $o = $this->s['opt'];
         $db = $this->s['db'];
-        $h = '-- phpMyFlow ' . PMF_VERSION . " SQL export\n-- Server: " . (string) $this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION) . "\n-- Database: " . str_replace("\n", ' ', $db) . "\n-- Date: " . gmdate('Y-m-d H:i:s') . " UTC\n\n";
+        $h = '-- phpMyFlow ' . PMF_VERSION . " SQL export\n-- Server: " . (string) $this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION) . "\n-- Database: " . preg_replace('~[\x00-\x1F\x7F]~', ' ', $db) . "\n-- Date: " . gmdate('Y-m-d H:i:s') . " UTC\n\n";
         $h .= "SET NAMES utf8mb4;\nSET time_zone = '+00:00';\nSET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n";
         if ($o['noFkChecks']) {
             $h .= "SET FOREIGN_KEY_CHECKS = 0;\n";
@@ -640,7 +643,7 @@ final class ExportJob
     private function sqlStructure(string $table): string
     {
         $create = (string) $this->pdo->query('SHOW CREATE TABLE ' . Db::ident($table))->fetch(PDO::FETCH_NUM)[1];
-        $s = "\n--\n-- Table " . Db::ident($table) . "\n--\n\n";
+        $s = "\n--\n-- Table " . Export::commentName($table) . "\n--\n\n";
         if ($this->s['opt']['dropTable']) {
             $s .= 'DROP TABLE IF EXISTS ' . Db::ident($table) . ";\n";
         }
@@ -650,7 +653,7 @@ final class ExportJob
     private function sqlView(string $v): string
     {
         $create = (string) $this->pdo->query('SHOW CREATE VIEW ' . Db::ident($v))->fetch(PDO::FETCH_NUM)[1];
-        $s = "\n--\n-- View " . Db::ident($v) . "\n--\n\n";
+        $s = "\n--\n-- View " . Export::commentName($v) . "\n--\n\n";
         if ($this->s['opt']['dropTable']) {
             $s .= 'DROP VIEW IF EXISTS ' . Db::ident($v) . ";\n";
         }
