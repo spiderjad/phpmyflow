@@ -26,10 +26,12 @@ test('"Sign out" with a modified SQL tab warns; Cancel keeps the session', async
 
   // Sign out for real, forgetting the connection.
   await page.getByRole('button', { name: 'Sign out' }).click();
-  await dlg.getByLabel('Forget this connection in recent ones').check();
+  await dlg.getByLabel('Forget this connection: recent list, SQL history and tabs in this browser').check();
   await dlg.getByRole('button', { name: 'Sign out' }).click();
   await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pmf.login.recent') ?? '[]').length)).toBe(0);
+  // Its SQL history and saved tabs are gone from this browser too.
+  expect(await page.evaluate(() => Object.keys(localStorage).filter((k) => /^pmf_(history|tabs):root@/.test(k)))).toEqual([]);
 });
 
 test.describe('inactivity', () => {

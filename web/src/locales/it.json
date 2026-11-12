@@ -1731,7 +1731,7 @@
   "logout.tabs.one": "1 scheda SQL con modifiche non eseguite (viene conservata e la ritroverai al ritorno)",
   "logout.structure": "Modifiche di struttura non applicate in {table} (andranno perse)",
   "logout.export": "Esportazione in corso (verrà annullata)",
-  "logout.forget": "Dimentica questa connessione tra le recenti",
+  "logout.forget": "Dimentica questa connessione: recenti, cronologia SQL e schede in questo browser",
   "idle.heading": "Ci sei ancora?",
   "idle.title": "La tua sessione si chiuderà tra {time} per inattività",
   "idle.body": "Il contenuto delle schede SQL resta salvato in questo browser.",

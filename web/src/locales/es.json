@@ -1731,7 +1731,7 @@
   "logout.tabs.one": "1 pestaña SQL con cambios sin ejecutar (se guarda y la verás al volver)",
   "logout.structure": "Cambios de estructura sin aplicar en {table} (se perderán)",
   "logout.export": "Exportación en curso (se cancelará)",
-  "logout.forget": "Olvidar esta conexión en recientes",
+  "logout.forget": "Olvidar esta conexión: recientes, historial SQL y pestañas en este navegador",
   "idle.heading": "¿Sigues ahí?",
   "idle.title": "Tu sesión se cerrará en {time} por inactividad",
   "idle.body": "Lo que tengas en las pestañas SQL se guarda en este navegador.",

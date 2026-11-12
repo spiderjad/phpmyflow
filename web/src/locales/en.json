@@ -1731,7 +1731,7 @@
   "logout.tabs.one": "1 SQL tab with changes not run (it is kept and you will see it when you come back)",
   "logout.structure": "Structure changes not applied in {table} (they will be lost)",
   "logout.export": "Export in progress (it will be cancelled)",
-  "logout.forget": "Forget this connection in recent ones",
+  "logout.forget": "Forget this connection: recent list, SQL history and tabs in this browser",
   "idle.heading": "Still there?",
   "idle.title": "Your session will end in {time} for inactivity",
   "idle.body": "Unsaved work in SQL tabs is kept in this browser.",

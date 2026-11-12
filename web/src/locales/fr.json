@@ -1731,7 +1731,7 @@
   "logout.tabs.one": "1 onglet SQL avec des modifications non exécutées (il est gardé et vous le retrouverez au retour)",
   "logout.structure": "Modifications de structure non appliquées dans {table} (elles seront perdues)",
   "logout.export": "Export en cours (il sera annulé)",
-  "logout.forget": "Oublier cette connexion dans les récentes",
+  "logout.forget": "Oublier cette connexion : récentes, historique SQL et onglets dans ce navigateur",
   "idle.heading": "Toujours là ?",
   "idle.title": "Votre session se fermera dans {time} pour inactivité",
   "idle.body": "Le contenu des onglets SQL reste enregistré dans ce navigateur.",

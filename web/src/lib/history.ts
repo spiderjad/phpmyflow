@@ -1,6 +1,43 @@
 // SQL history: every run with its date, kept per user@host in localStorage
 // and grouped by day. Stores only what the user typed plus metadata (never
-// results, never credentials).
+// results); passwords in account statements are stored as '***'.
+import { splitStatements } from './sqlText';
+
+const LITERAL = String.raw`'(?:[^'\\]|\\.|'')*'|"(?:[^"\\]|\\.|"")*"`;
+/** Statements that can carry a password: accounts, replication, FEDERATED servers. */
+const CREDENTIAL_STATEMENT = /^\s*(CREATE|ALTER|GRANT|SET|CHANGE)\b[\s\S]*\b(IDENTIFIED|PASSWORD|MASTER_PASSWORD|SOURCE_PASSWORD)\b/i;
+/** The literal right after BY / AS / USING / PASSWORD / …_PASSWORD / REPLACE (optionally "= ", "PASSWORD(" or "("). */
+const AFTER_KEYWORD = new RegExp(
+  String.raw`(\b(?:BY|AS|USING|PASSWORD|MASTER_PASSWORD|SOURCE_PASSWORD|REPLACE)\b\s*(?:=\s*)?(?:PASSWORD\s*)?(?:\(\s*)?)(?:${LITERAL})`,
+  'gi',
+);
+
+/**
+ * The statement with every password replaced by '***' (like MySQL's own logs):
+ * CREATE / ALTER USER … IDENTIFIED BY / WITH … BY / AS / VIA … USING PASSWORD(),
+ * REPLACE 'current', SET PASSWORD, GRANT … IDENTIFIED BY, CHANGE MASTER /
+ * REPLICATION SOURCE … _PASSWORD, CREATE / ALTER SERVER … PASSWORD. Anything
+ * else is returned unchanged.
+ */
+export function redactSecrets(sql: string): string {
+  if (!CREDENTIAL_STATEMENT.test(sql)) return sql;
+  let out = sql.replace(AFTER_KEYWORD, "$1'***'");
+  if (/^\s*SET\s+PASSWORD\b/i.test(out)) {
+    const eq = out.indexOf('=');
+    if (eq >= 0) out = out.slice(0, eq) + out.slice(eq).replace(new RegExp(LITERAL, 'g'), "'***'");
+  }
+  return out;
+}
+
+/** redactSecrets for every statement of an editor text (offsets kept for the rest). */
+export function redactScript(sql: string): string {
+  let out = sql;
+  for (const st of splitStatements(sql).reverse()) {
+    const clean = redactSecrets(st.text);
+    if (clean !== st.text) out = out.slice(0, st.from) + clean + out.slice(st.to);
+  }
+  return out;
+}
 
 export interface HistoryEntry {
   id: string;
@@ -32,7 +69,7 @@ const newId = () => Math.random().toString(36).slice(2, 10) + Date.now().toStrin
  * database, update it instead of adding a duplicate row.
  */
 export function addRun(list: HistoryEntry[], run: Omit<HistoryEntry, 'id' | 'count'>): HistoryEntry[] {
-  const sql = run.sql.trim();
+  const sql = redactSecrets(run.sql.trim());
   if (!sql) return list;
   const top = list[0];
   if (top && top.sql === sql && top.db === run.db) {

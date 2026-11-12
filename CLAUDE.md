@@ -76,7 +76,7 @@ web/                    Svelte 5 + Vite + TypeScript UI
   src/lib/theme.ts      themes: data-theme/data-mode/data-density/data-radius on <html>, accent + text size, contrast math, config.php 'ui' defaults; index.html has the pre-paint copy
   src/styles/themes/    one CSS file per theme (spider-ui token names, light + dark); AA checked by lib/theme.test.ts
   src/lib/tabs.svelte.ts   SQL tabs store (list, active id, undo, persistence per user@host)
-  src/lib/history.ts    dated SQL history per user@host, grouped by day
+  src/lib/history.ts    dated SQL history per user@host, grouped by day; passwords in account statements saved as '***' (also in saved tabs); "Forget this connection" on sign-out deletes both
   src/lib/dbApi.ts, dbActions.svelte.ts, dbTools.svelte.ts  database tools: API client, dialogs + context menus, privileges (db_caps)
   src/lib/exporter.ts, importer.ts  export / import jobs driven step by step (one request at a time: works on php -S); copier.ts; jobs.svelte.ts  background jobs (stats, log, stall after 20 s, retry one step, resume); tableTemplates.ts
   src/lib/objects.ts    object specs, API client, RecordPicker lookup helpers; src/lib/sqlHighlight.ts shared SQL colors

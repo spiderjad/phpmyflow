@@ -1,9 +1,11 @@
 // SQL editor tabs: the list, the active id, undo for closed tabs, and
 // persistence per user@host. Results stay in memory only; what is saved is
-// title, SQL, database, cursor and editor height (never credentials).
+// title, SQL (passwords in account statements as '***'), database, cursor
+// and editor height.
 import type { AiMode, AiResult, QueryResult } from './api';
 import type { FriendlyError } from './errors';
 import type { RuleDiagnostic } from './sqlRules';
+import { redactScript } from './history';
 import { mask } from './sqlText';
 
 export type Done = Exclude<QueryResult, { needsConfirm: true }>;
@@ -336,11 +338,11 @@ export class TabStore {
       id: t.id,
       n: t.n,
       title: t.title,
-      sql: t.sql,
+      sql: redactScript(t.sql),
       db: t.db,
       cursor: t.cursor,
       editorHeight: t.editorHeight,
-      lastRunSql: t.lastRunSql,
+      lastRunSql: t.lastRunSql === null ? null : redactScript(t.lastRunSql),
     }));
     try {
       this.storage.setItem(this.key, JSON.stringify({ tabs, activeId: this.activeId, counter: this.counter }));

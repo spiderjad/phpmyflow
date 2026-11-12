@@ -5,6 +5,7 @@
   import { app, loadDatabases, rememberView, type View } from './lib/state.svelte';
   import { prefs, savePrefs, setSidebarWidth, SIDEBAR_MAX, SIDEBAR_MIN } from './lib/prefs.svelte';
   import { tabs, tabsKey } from './lib/tabs.svelte';
+  import { historyKey } from './lib/history';
   import { confirmAction, dismissToast, registerConfirm, toast, toasts } from './lib/ui.svelte';
   import ConfirmDialog from './components/ConfirmDialog.svelte';
   import LangSwitch from './components/LangSwitch.svelte';
@@ -41,7 +42,17 @@
   /** From the logout modal: optionally forget the connection, cancel running exports, then sign out. */
   async function confirmLogout(forget: boolean) {
     const a = app.session?.auth;
-    if (forget && a) forgetRecent({ host: a.host, port: a.port, user: a.user });
+    if (forget && a) {
+      forgetRecent({ host: a.host, port: a.port, user: a.user });
+      // Also this browser's SQL history and saved tabs for the connection.
+      tabs.load('');
+      try {
+        localStorage.removeItem(historyKey(a));
+        localStorage.removeItem(tabsKey(a));
+      } catch {
+        /* blocked storage */
+      }
+    }
     for (const j of jobs) if (j.kind === 'export' && j.status === 'running') cancelJob(j);
     await logout();
   }
