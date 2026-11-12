@@ -28,7 +28,7 @@ Relations used by 1-4 come from `Schema::inferRelations` (`xxx_id`, `xxx_id_suff
 server/                 PHP backend + build output (this folder is the release)
   api.php               single endpoint: api.php?a=<action>
   config.sample.php     defaults (env vars for Docker); users copy to config.php
-  src/Auth.php          login with DB credentials, encrypted password, CSRF, rate limit (wrong passwords only), SSL options (session)
+  src/Auth.php          login with DB credentials, encrypted password, CSRF, rate limit per IP (wrong passwords only, never reset by a good sign-in; with `demo_login` other users are refused before connecting), SSL options (session)
   src/ConnectError.php  classifies failed connections: login_failed, server_unreachable, host_not_found, not_mysql, ssl_*, auth_plugin_unsupported
   src/Db.php            PDO connection, ident quoting
   src/Schema.php        information_schema reads (also identifier validation), relation inference by naming convention
@@ -157,7 +157,7 @@ cd server && php -S 127.0.0.1:8080          # API
 cd web && npm run dev                        # UI on :5173 (proxies api.php)
 cd web && npm run check                      # svelte-check, must be 0 errors / 0 warnings
 cd web && npm test                           # Vitest unit tests (src/**/*.test.ts)
-php tests/php/run.php                        # PHP tests (no Composer); DB tests use PMF_TEST_DB=host:port:user:pass (default docker sample on 3307); some start their own php -S (tests/php/support.php)
+php tests/php/run.php                        # PHP tests (no Composer), then tests/security (one regression test per security fix); DB tests use PMF_TEST_DB=host:port:user:pass (default docker sample on 3307); some start their own php -S (tests/php/support.php)
 cd web && npm run e2e                        # Playwright (needs php -S + docker/sample.sql; see web/playwright.config.ts)
 cd web && npm run build                      # writes server/index.html + server/assets
 for f in server/api.php server/src/*.php; do php -l "$f"; done

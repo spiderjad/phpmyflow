@@ -185,6 +185,7 @@
   "error.not_authenticated": "Votre session a expiré. Reconnectez-vous.",
   "error.csrf": "Le jeton de sécurité a expiré. Rechargez la page.",
   "error.login_failed": "Utilisateur, mot de passe ou serveur incorrect.",
+  "error.demo_only": "Cette démo n’accepte que l’utilisateur de démo.",
   "error.too_many_attempts": "Trop de tentatives échouées. Attendez 15 minutes puis réessayez.",
   "error.host_not_allowed": "Ce serveur ne fait pas partie de la liste autorisée (config.php → servers).",
   "error.connection_failed": "Impossible de se connecter au serveur de base de données.",

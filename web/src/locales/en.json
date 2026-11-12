@@ -185,6 +185,7 @@
   "error.not_authenticated": "Your session ended. Sign in again.",
   "error.csrf": "Security token expired. Reload the page.",
   "error.login_failed": "Wrong user, password or server.",
+  "error.demo_only": "This demo only accepts the demo user.",
   "error.too_many_attempts": "Too many failed attempts. Wait 15 minutes and try again.",
   "error.host_not_allowed": "This server isn’t in the allowed list (config.php → servers).",
   "error.connection_failed": "Couldn’t connect to the database server.",

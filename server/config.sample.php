@@ -60,6 +60,7 @@ return [
 
     // Public demo only: user and password filled in on the sign-in screen, for example
     // ['user' => 'demo', 'password' => 'demo']. Ignored unless 'read_only' is true.
+    // When set, only this user may sign in.
     'demo_login' => $env('PMF_DEMO_USER', '') !== ''
         ? ['user' => (string) $env('PMF_DEMO_USER', ''), 'password' => (string) $env('PMF_DEMO_PASSWORD', '')]
         : null,

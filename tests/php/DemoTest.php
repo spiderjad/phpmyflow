@@ -112,7 +112,10 @@ return [
             return;
         }
         [$host, $port, $user, $pass] = $db;
-        [, $c] = demoReadOnlyServer();
+        // With demo_login only the demo user may sign in: here the demo user is the
+        // test database's (privileged) user, so the read-only session is what stops writes.
+        $srv = new TestServer([], ['PMF_READ_ONLY' => '1', 'PMF_QUERY_TIMEOUT' => '1', 'PMF_DEMO_USER' => $user, 'PMF_DEMO_PASSWORD' => $pass]);
+        $c = new TestClient($srv->url);
         $c->login($host, $port, $user, $pass);
         // The session itself: even a write the app let through would fail in MySQL.
         $r = $c->json('POST', 'a=query', ['sql' => 'SELECT @@session.transaction_read_only AS ro']);

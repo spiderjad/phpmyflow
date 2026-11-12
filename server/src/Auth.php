@@ -67,11 +67,12 @@ final class Auth
     {
         $server = self::resolveServer($host, $port);
         self::assertNotRateLimited();
+        self::assertDemoUser($user);
         $ssl = self::sslOptions($server, $sslRequest);
 
         self::open($host, $port, $user, $password, $ssl);
 
-        self::clearFailures();
+        // Failures are never cleared by a good sign-in: they expire with the window.
         session_regenerate_id(true);
 
         $key = random_bytes(32);
@@ -109,6 +110,7 @@ final class Auth
     {
         $server = self::resolveServer($host, $port);
         self::assertNotRateLimited();
+        self::assertDemoUser($user);
         $ssl = self::sslOptions($server, $sslRequest);
         $pdo = self::open($host, $port, $user, $password, $ssl);
         $cipher = null;
@@ -289,8 +291,20 @@ final class Auth
         file_put_contents(self::attemptsFile(), json_encode($list), LOCK_EX);
     }
 
-    private static function clearFailures(): void
+    /**
+     * A public demo publishes one login. Any other user is refused before a
+     * connection is opened, and counts as a failed attempt.
+     */
+    private static function assertDemoUser(string $user): void
     {
-        @unlink(self::attemptsFile());
+        $config = pmf_config();
+        $demo = $config['demo_login'] ?? null;
+        if (empty($config['read_only']) || !is_array($demo) || !isset($demo['user'], $demo['password'])) {
+            return;
+        }
+        if (!hash_equals((string) $demo['user'], $user)) {
+            self::recordFailure();
+            throw new ApiError('demo_only', 'This demo only accepts the demo user', 403);
+        }
     }
 }

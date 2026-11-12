@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Tiny test runner (no Composer, like the server). Each *Test.php file returns
  * an array of name => closure; a closure fails by throwing.
  *
- *   php tests/php/run.php            all tests
+ *   php tests/php/run.php            all tests, then tests/security
  *   php tests/php/run.php Schema     files whose name contains "Schema"
  */
 
@@ -28,7 +28,7 @@ function ok(bool $cond, string $what): void
 $filter = $argv[1] ?? '';
 $failed = 0;
 $passed = 0;
-foreach (glob(__DIR__ . '/*Test.php') as $file) {
+foreach (array_merge(glob(__DIR__ . '/*Test.php'), glob(__DIR__ . '/../security/*Test.php')) as $file) {
     if ($filter !== '' && stripos(basename($file), $filter) === false) {
         continue;
     }

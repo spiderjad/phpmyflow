@@ -185,6 +185,7 @@
   "error.not_authenticated": "La sessione è scaduta. Accedi di nuovo.",
   "error.csrf": "Il token di sicurezza è scaduto. Ricarica la pagina.",
   "error.login_failed": "Utente, password o server errati.",
+  "error.demo_only": "Questa demo accetta solo l’utente demo.",
   "error.too_many_attempts": "Troppi tentativi falliti. Attendi 15 minuti e riprova.",
   "error.host_not_allowed": "Questo server non è nell’elenco consentito (config.php → servers).",
   "error.connection_failed": "Impossibile connettersi al server del database.",

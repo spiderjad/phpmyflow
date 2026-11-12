@@ -185,6 +185,7 @@
   "error.not_authenticated": "Tu sesión terminó. Vuelve a entrar.",
   "error.csrf": "El token de seguridad venció. Recarga la página.",
   "error.login_failed": "Usuario, contraseña o servidor incorrectos.",
+  "error.demo_only": "Esta demo solo acepta el usuario de la demo.",
   "error.too_many_attempts": "Demasiados intentos fallidos. Espera 15 minutos y prueba de nuevo.",
   "error.host_not_allowed": "Este servidor no está en la lista permitida (config.php → servers).",
   "error.connection_failed": "No se pudo conectar al servidor de base de datos.",
