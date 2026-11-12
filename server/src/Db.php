@@ -64,9 +64,11 @@ final class Db
     {
         $cfg = pmf_config();
         if (!empty($cfg['read_only'])) {
+            // Fail closed: a read-only installation never works on a writable session.
             try {
                 $pdo->exec('SET SESSION TRANSACTION READ ONLY');
             } catch (\PDOException) {
+                throw new ApiError('read_only_session', 'The server could not open a read-only session', 500);
             }
         }
         $timeout = (float) ($cfg['query_timeout_seconds'] ?? 0);

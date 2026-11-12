@@ -15,16 +15,35 @@ final class Sql
 
     private const READ = ['SELECT', 'SHOW', 'DESCRIBE', 'DESC', 'EXPLAIN', 'WITH', 'HELP'];
 
-    /** Remove comments and string literals so keyword checks can't be fooled. */
+    /**
+     * Remove comments and string literals so keyword checks can't be fooled.
+     * One left-to-right pass, like MySQL: a "#" or "--" inside a string is not a
+     * comment, and the text of an executable comment (/*! … *\/, /*M! … *\/) is
+     * kept, because the server runs it.
+     */
     public static function skeleton(string $sql): string
     {
-        $out = preg_replace([
-            '~/\*.*?\*/~s',             // block comments
-            '~(--\s|#)[^\n]*~',          // line comments
-            "~'(?:[^'\\\\]|\\\\.|'')*'~s", // single-quoted strings
-            '~"(?:[^"\\\\]|\\\\.|"")*"~s', // double-quoted strings
-            '~`(?:[^`]|``)*`~',          // quoted identifiers
-        ], [' ', ' ', "''", '""', '``'], $sql);
+        $exec = false;
+        return self::scan($sql, $exec);
+    }
+
+    private static function scan(string $sql, bool &$exec): string
+    {
+        $out = preg_replace_callback(
+            '~\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`(?:[^`]|``)*`|/\*(M?!)\d*(.*?)\*/|/\*.*?\*/|(?:--(?=\s|$)|#)[^\n]*~s',
+            static function (array $m) use (&$exec): string {
+                $c = $m[0][0];
+                if ($c === "'" || $c === '"' || $c === '`') {
+                    return $c . $c;
+                }
+                if (($m[1] ?? '') !== '') {
+                    $exec = true;
+                    return ' ' . self::scan($m[2], $exec) . ' ';
+                }
+                return ' ';
+            },
+            $sql
+        );
         return trim((string) $out);
     }
 
@@ -43,10 +62,13 @@ final class Sql
      */
     public static function classify(string $sql): array
     {
-        $sk = strtoupper(self::skeleton($sql));
+        $exec = false;
+        $sk = strtoupper(self::scan($sql, $exec));
         preg_match('~^\(*\s*([A-Z]+)~', $sk, $m);
         $verb = $m[1] ?? '';
-        $readOnly = in_array($verb, self::READ, true)
+        // Executable comments are never read-only: the server may run them
+        // differently from how they read here (version numbers, MariaDB-only).
+        $readOnly = !$exec && in_array($verb, self::READ, true)
             && !preg_match('~\b(INSERT|UPDATE|DELETE|REPLACE|INTO\s+OUTFILE|INTO\s+DUMPFILE)\b~', $sk);
 
         $reason = null;

@@ -186,6 +186,7 @@
   "error.csrf": "El token de seguridad venció. Recarga la página.",
   "error.login_failed": "Usuario, contraseña o servidor incorrectos.",
   "error.demo_only": "Esta demo solo acepta el usuario de la demo.",
+  "error.read_only_session": "El servidor de base de datos no pudo abrir una sesión de solo lectura, así que esta instalación de solo lectura no se conecta.",
   "error.too_many_attempts": "Demasiados intentos fallidos. Espera 15 minutos y prueba de nuevo.",
   "error.host_not_allowed": "Este servidor no está en la lista permitida (config.php → servers).",
   "error.connection_failed": "No se pudo conectar al servidor de base de datos.",
