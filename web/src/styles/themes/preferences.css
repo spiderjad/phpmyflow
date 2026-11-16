@@ -51,10 +51,10 @@
   background-color: color-mix(in srgb, var(--sp-bg-muted) 55%, var(--sp-bg));
 }
 
-/* Comfortable density: more air in the sidebar and the structure table. */
-:root[data-density='comfortable'] nav.tables .tbl {
-  padding-top: 7px;
-  padding-bottom: 7px;
+/* Comfortable density: more air in the sidebar (spider-ui --sp-row-dense, also set by
+   spider-ui's themes.css, which phpMyFlow doesn't load) and the structure table. */
+:root[data-density='comfortable'] {
+  --sp-row-dense: 34px;
 }
 :root[data-density='comfortable'] .col-row {
   min-height: 48px;

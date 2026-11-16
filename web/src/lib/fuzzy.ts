@@ -86,3 +86,41 @@ export function commonPrefix(names: string[], minShare = 0.6): string {
   }
   return bestCount >= 3 && bestCount / names.length >= minShare ? best : '';
 }
+
+export interface PrefixGroup<T> {
+  /** "sap_", or '' for the tables that share no prefix. */
+  prefix: string;
+  items: T[];
+}
+
+/**
+ * Groups by name prefix (text up to the first "_"), for the sidebar: "sap_" 17,
+ * "cfg_" 10. A prefix needs at least 3 tables, and the grouped tables must be
+ * 60% of all; otherwise null (no grouping: "orders", "order_items"… stay flat).
+ * Biggest group first, then by prefix; the rest last. Keeps the input order
+ * inside each group.
+ */
+export function prefixGroups<T>(items: T[], key: (item: T) => string, minShare = 0.6): PrefixGroup<T>[] | null {
+  if (items.length < 3) return null;
+  const prefixOf = (name: string) => {
+    const cut = name.indexOf('_');
+    return cut > 0 && cut < name.length - 1 ? name.slice(0, cut + 1) : '';
+  };
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    const p = prefixOf(key(item));
+    if (p) counts.set(p, (counts.get(p) ?? 0) + 1);
+  }
+  const kept = new Set([...counts].filter(([, c]) => c >= 3).map(([p]) => p));
+  const grouped = [...kept].reduce((sum, p) => sum + (counts.get(p) ?? 0), 0);
+  if (!kept.size || grouped / items.length < minShare) return null;
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const p = prefixOf(key(item));
+    const g = kept.has(p) ? p : '';
+    groups.set(g, [...(groups.get(g) ?? []), item]);
+  }
+  return [...groups]
+    .map(([prefix, list]) => ({ prefix, items: list }))
+    .sort((a, b) => Number(a.prefix === '') - Number(b.prefix === '') || b.items.length - a.items.length || a.prefix.localeCompare(b.prefix));
+}

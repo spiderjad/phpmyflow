@@ -258,7 +258,7 @@
       </div>
     </header>
 
-    <div class="side-wrap" onclick={(e) => { if ((e.target as HTMLElement).closest('.tbl')) menuOpen = false; }} role="presentation">
+    <div class="side-wrap" onclick={(e) => { if ((e.target as HTMLElement).closest('[data-table], [data-object]')) menuOpen = false; }} role="presentation">
       <Sidebar />
       <!-- Focusable separator = ARIA "window splitter" pattern, keyboard resizable. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->

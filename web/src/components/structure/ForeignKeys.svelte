@@ -6,7 +6,6 @@
   import { fkName, fkSignature, orphanQuery, polymorphicIds, preselect, RULES, setNullBlocker, targetCandidates } from '../../lib/foreignKeys';
   import { commonPrefix } from '../../lib/fuzzy';
   import { i18n, n, t } from '../../lib/i18n.svelte';
-  import { prefs } from '../../lib/prefs.svelte';
   import { app, openFiltered } from '../../lib/state.svelte';
   import { tabs } from '../../lib/tabs.svelte';
   import { clone, uid, type FkModel, type TableModel } from '../../lib/tableDraft';
@@ -33,8 +32,10 @@
     onfixcolumn: (column: string, columnType: string, collation: string | null) => void;
   } = $props();
 
+  // Shared table prefix (wp_, glpi_): used to name new foreign keys.
   const prefix = $derived(commonPrefix(app.tables.map((x) => x.name)));
-  const shown = (name: string) => (prefs.hidePrefix && prefix && name.startsWith(prefix) ? name.slice(prefix.length) : name);
+  // Full table names here: the sidebar's prefix groups don't apply to a foreign key list.
+  const shown = (name: string) => name;
   const localDef = (name: string) => draft.columns.find((c) => c.name === name) ?? null;
   const isNew = (f: FkModel) => !f.orig;
   const origFk = (f: FkModel) => original.fks.find((o) => o.orig === f.orig);

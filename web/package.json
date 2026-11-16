@@ -34,7 +34,7 @@
     "@lezer/highlight": "^1.2.5",
     "codemirror": "^6.0.2",
     "node-sql-parser": "^5.4.0",
-    "spider-ui": "github:spiderjad/spider-ui#0e6fa6e40ccf0ffe90aee4b2a9477b0d95afe5f9",
+    "spider-ui": "github:spiderjad/spider-ui#cc6c9baddeebdfd5a5d93a677c1ea4a85c411b6a",
     "uplot": "^1.6.32"
   }
 }

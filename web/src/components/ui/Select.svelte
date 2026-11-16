@@ -24,7 +24,8 @@
     compact = false,
     disabled = false,
     id,
-  }: { value: string; options: SelectOption[]; label: string; onchange: (v: string) => void; mono?: boolean; compact?: boolean; disabled?: boolean; id?: string } = $props();
+    placeholder = '',
+  }: { value: string; options: SelectOption[]; label: string; onchange: (v: string) => void; mono?: boolean; compact?: boolean; disabled?: boolean; id?: string; placeholder?: string } = $props();
 
   const uid = untrack(() => id) ?? `sel-${Math.random().toString(36).slice(2, 8)}`;
   let open = $state(false);
@@ -106,7 +107,7 @@
     }
   }}
 >
-  <span class="val">{current?.label ?? value}</span>
+  <span class="val" class:ph={!current && !value}>{current?.label ?? (value || placeholder)}</span>
   <span class="chev" aria-hidden="true">▾</span>
 </button>
 
@@ -162,6 +163,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .ph {
+    color: var(--sp-text-secondary);
   }
   .chev {
     color: var(--sp-text-tertiary);

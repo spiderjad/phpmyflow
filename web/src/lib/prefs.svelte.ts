@@ -14,7 +14,8 @@ export const SIDEBAR_MAX = 560;
 interface Stored {
   density: Density;
   sidebarWidth: number;
-  hidePrefix: boolean;
+  /** Sidebar: one group per shared name prefix ("sap_", "cfg_"), names shown without it. */
+  groupPrefix: boolean;
   tableSort: TableSort;
 }
 
@@ -35,10 +36,10 @@ function write(key: string, value: unknown) {
   }
 }
 
-export const prefs = $state<Stored>(read<Stored>(KEY, { density: 'compact', sidebarWidth: 248, hidePrefix: false, tableSort: 'name' }));
+export const prefs = $state<Stored>(read<Stored>(KEY, { density: 'compact', sidebarWidth: 248, groupPrefix: true, tableSort: 'name' }));
 
 export function savePrefs() {
-  write(KEY, { density: prefs.density, sidebarWidth: prefs.sidebarWidth, hidePrefix: prefs.hidePrefix, tableSort: prefs.tableSort });
+  write(KEY, { density: prefs.density, sidebarWidth: prefs.sidebarWidth, groupPrefix: prefs.groupPrefix, tableSort: prefs.tableSort });
 }
 
 export function setDensity(d: Density) {

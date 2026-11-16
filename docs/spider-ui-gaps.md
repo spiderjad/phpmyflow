@@ -5,7 +5,24 @@ Things phpMyFlow needs that are generic enough to belong in
 `web/src/styles/app.css`. Until they land upstream, phpMyFlow keeps a local
 version and this list says where.
 
-Checked against spider-ui `0e6fa6e` (version 1.1.0).
+Checked against spider-ui `cc6c9ba` (version 1.4.0).
+
+## Landed in spider-ui 1.4.0
+
+phpMyFlow's look moved upstream as `data.css` (apps de datos) and `themes.css`:
+
+| Was a gap | Upstream now | phpMyFlow |
+|---|---|---|
+| Sidebar object list | `v-explorer` (two rows on top, one number per row named in the group head, prefix groups, no empty groups, card-style current row) | `Sidebar.svelte` uses it |
+| Bulk actions with nothing selected | `v-selectionbar` (+ `--idle` hint) | `DbOverview.svelte` uses it |
+| Compact table | `v-grid` (sticky header, mono cells, `v-grid__num`, `aria-sort` arrows, `--sp-row-dense`) | `table.grid` in `app.css` and `DataGrid` still local |
+| View tabs | `v-appbar` + `v-tabs` (underline) | top bar in `App.svelte` still local (same look) |
+| Switch | `v-switch` | `structure/Switch.svelte` still local (same look) |
+| Segmented control with radio semantics | `v-segmented__item[aria-checked]` styled | `ui/Segmented.svelte` keeps the keyboard handling |
+| Multiple themes, radius scale, density attribute | `themes.css`: `data-theme`, `data-radius`, `data-density` | `styles/themes/*.css` still local (same values; `lib/theme.test.ts` reads them) |
+| Mode attribute, mode scope | `data-mode`, `data-mode-scope` in `tokens.css` | `themes/modes.css` repeats them (harmless) |
+| Tertiary text AA | `--sp-text-tertiary` #737373 / #8a8a8a | same values |
+| Pre-paint script | documented in GUIDE.md (section 5) | `web/index.html` |
 
 ## Tokens
 
@@ -23,7 +40,6 @@ Checked against spider-ui `0e6fa6e` (version 1.1.0).
 | `v-badge` sizes | Only one size; inline badges inside dense grid rows need a smaller variant. | — |
 | Tooltip | Truncated names, raw values behind formatted dates, shortcut hints. | Native `title` attribute. |
 | Split pane / resizer | Resizable sidebar, editor/results split. | — |
-| Compact table | `.v-table` is a comfortable admin table (12px cell padding, no sticky header, no column resize). Data-dense apps need a compact variant with sticky header. | `table.grid` in `app.css`. |
 | Toast / snackbar with action | "Tab closed · Undo", "12 rows copied". | `.toast` in `App.svelte`. |
 | Tabs (closable, scrollable) | `v-segmented` covers short view switchers, not document tabs with close buttons and overflow. | — |
 | Context menu | `v-menu` exists but nothing positions it at the pointer or handles submenus. | — |
@@ -50,7 +66,6 @@ Checked against spider-ui `0e6fa6e` (version 1.1.0).
 | Gap | Why | Local workaround |
 |---|---|---|
 | Popover | Anchored panel with focus trap and Escape (type picker, default value, table chips). | `structure/Popover.svelte` + `lib/focusTrap.ts`. |
-| Switch | `role="switch"` toggle for booleans in dense rows (Null, Unsigned, AI). | `structure/Switch.svelte`. |
 | Drawer | Modal side panel with focus trap (review changes, advanced options, foreign key). | `structure/Drawer.svelte`. |
 | Editable chip | Chip that opens a choice or turns into an input (default value, ENUM values). | `structure/DefaultChip.svelte`, chips in `TypePopover.svelte`. |
 | Change marks | Row edge colors for new / modified / dropped. | `.col-row.new/.modified/.dropped` in `StructureView.svelte`. |
@@ -59,7 +74,6 @@ Checked against spider-ui `0e6fa6e` (version 1.1.0).
 
 | Gap | Why | Local workaround |
 |---|---|---|
-| Segmented control with radio semantics | `.v-segmented` only styles `aria-pressed` buttons; a choice of one needs `role="radiogroup"`, arrow keys, and disabled options that stay focusable and say why (`aria-describedby`). | `ui/Segmented.svelte` (also styles `aria-checked`). |
 | Custom select (listbox) | No native `<select>` in the Structure tab: options need tooltips with reasons, disabled-with-reason entries and a search box for long lists (collations). | `ui/Select.svelte` (button + `role="listbox"`, `aria-activedescendant`, type-ahead). |
 | Reorderable list | Ordered selection (index columns) reordered by drag or Alt+↑/↓ with position numbers. | `.selected` list in `structure/IndexForm.svelte`. |
 | Key badge | Small badge with position ("UNI 2/3"), overflow "+N" and a pending (green) state. | `.key` in `StructureView.svelte`. |
@@ -68,11 +82,6 @@ Checked against spider-ui `0e6fa6e` (version 1.1.0).
 
 | Gap | Why | Local workaround |
 |---|---|---|
-| Multiple themes | spider-ui has one palette (light + dark). phpMyFlow offers Monochrome (= spider-ui), Graphite, Slate, Spider, Forest and High contrast, each a full set of `--sp-*` tokens per mode. These files can move to the package as they are. | `web/src/styles/themes/*.css`, contrast checked by `lib/theme.test.ts`. |
-| Mode attribute | spider-ui switches modes with `data-theme="light\|dark"`, which leaves no room for a theme name. Proposal: `data-mode` for light/dark and `data-theme` for the palette. | `themes/modes.css` repeats the spider-ui values keyed on `data-mode` (always resolved, "system" included). |
-| Tertiary text AA | `--sp-text-tertiary` (#8f8f8f light, #737373 dark) is 3.3:1. It is documented as placeholder only, but real UIs use it for hints and counts. | Monochrome uses #737373 light / #8a8a8a dark (≥ 4.5:1 on `--sp-bg`). |
-| Radius scale | Only `--sp-radius` and `--sp-radius-lg`; no named scale for "sharp / soft / round". | `data-radius` in `themes/modes.css`. |
-| Density attribute | No compact / comfortable switch for tables, lists and sidebars. | `data-density` on `<html>`. |
 | Custom accent | Users pick an accent (8 swatches or any color). The package needs the derivation rules: hover, text on the accent (white or black by contrast), focus ring. | `accentVars()` in `lib/theme.ts`. |
 | 8-color palette | Named colors (red, orange, amber, green, teal, blue, violet, pink) with AA values per mode, for accents, connection colors and tags. | `PALETTE` in `lib/theme.ts`. |
 | Pre-paint script | Apps that store the theme in `localStorage` need a tiny inline script to set the attributes before paint (no flash). | `web/index.html`. |
@@ -96,7 +105,6 @@ Checked against spider-ui `0e6fa6e` (version 1.1.0).
 | Theme cards | Radio cards with a live thumbnail of each theme in light and dark. Needs themes as scoped token sets (`data-preview-theme` + `data-mode-scope`). | `settings/ThemeCards.svelte`, selectors in `styles/themes/*.css`. |
 | Color picker | Swatch radiogroup (8 colors + "theme" + custom) with an AA warning. | `settings/AccentPicker.svelte`. |
 | Environment label and stripe | "PRODUCTION" style label next to the user and a thin colored stripe on top; the label must always come with the color. | `.env-tag`, `.conn-stripe` in `App.svelte`. |
-| Mode scope | A way to apply light or dark tokens to a subtree (previews, auth screens). | `[data-mode-scope]` in `themes/modes.css`. |
 
 ## Added for export / import jobs
 

@@ -33,6 +33,14 @@ export const MENU_ICONS: Record<string, string> = {
   database: 'M8 2.5c3 0 5 1 5 2v7c0 1-2 2-5 2s-5-1-5-2v-7c0-1 2-2 5-2zM3 4.5c0 1 2 2 5 2s5-1 5-2M3 8c0 1 2 2 5 2s5-1 5-2',
   generate: 'M8 2.5v3M8 10.5v3M2.5 8h3M10.5 8h3M4.2 4.2l2 2M9.8 9.8l2 2M11.8 4.2l-2 2M6.2 9.8l-2 2',
   grid: 'M2.5 2.5h4.5v4.5h-4.5zM9 2.5h4.5v4.5H9zM2.5 9h4.5v4.5h-4.5zM9 9h4.5v4.5H9z',
+  // Sidebar (object kinds and the list controls).
+  view: 'M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8zM8 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
+  fn: 'M11 2.5c-1.6 0-2.2.8-2.5 2.3L7.2 11.2c-.3 1.5-.9 2.3-2.5 2.3M5.5 6.5h5',
+  zap: 'M9 1.5 3.5 9H8l-1 5.5L12.5 7H8z',
+  clock: 'M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 5v3l2 1.5',
+  sliders: 'M2.5 4.5h6M11.5 4.5h2M2.5 8h2M7.5 8h6M2.5 11.5h7M12.5 11.5h1M10 3v3M6 6.5v3M11 10v3',
+  more: 'M3.5 8h.01M8 8h.01M12.5 8h.01',
+  chevDown: 'M4 6l4 4 4-4',
 };
 
 /** Icons for items that only have an id (dbActions, objects). */

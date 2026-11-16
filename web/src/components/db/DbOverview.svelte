@@ -108,15 +108,22 @@
   {/if}
   {#if error}<p class="v-banner v-banner--danger" role="alert">{error}</p>{/if}
 
-  <div class="bar" role="toolbar" aria-label={t('overview.selection')}>
+  <!-- spider-ui selection bar: a hint while nothing is ticked, the actions once something is (never a row of grey buttons). -->
+  <div class="bar">
     <input class="v-input filter" type="search" bind:value={filter} placeholder={t('overview.filter', { count: n(ov?.tables.length ?? 0) })} aria-label={t('overview.filterLabel')} />
-    <span class="dim" aria-live="polite">{sel.length ? t('overview.selected', { count: n(sel.length) }) : ''}</span>
-    <span class="spacer"></span>
-    <button class="v-btn-ghost v-btn--sm" disabled={!sel.length || !nExport.ok} onclick={() => openDialog({ kind: 'export', db, tables: sel })}>{t('overview.export')}</button>
-    <button class="v-btn-ghost v-btn--sm danger" disabled={!sel.length || !selTablesOnly || !nWrite.ok} title={needText(nWrite)} onclick={() => openDialog({ kind: 'truncate', db, tables: sel })}>{t('overview.truncate')}</button>
-    <button class="v-btn-ghost v-btn--sm danger" disabled={!sel.length || !nWrite.ok} title={needText(nWrite)} onclick={() => openDialog({ kind: 'drop', db, tables: sel })}>{t('overview.drop')}</button>
-    <button class="v-btn-ghost v-btn--sm" disabled={!sel.length || !selTablesOnly} onclick={() => openDialog({ kind: 'maintenance', db, tables: sel })}>{t('overview.maintenance')}</button>
-    <button class="v-btn-ghost v-btn--sm" disabled={!sel.length || !selTablesOnly || !need(['ALTER']).ok} title={needText(need(['ALTER']))} onclick={() => openDialog({ kind: 'bulk', db, tables: sel })}>{t('overview.engineCollation')}</button>
+    {#if !sel.length}
+      <p class="v-selectionbar v-selectionbar--idle">{t('overview.selectionHint')}</p>
+    {:else}
+      <div class="v-selectionbar" role="toolbar" aria-label={t('overview.selection')}>
+        <span class="v-selectionbar__count" aria-live="polite">{t('overview.selected', { count: n(sel.length) })}</span>
+        <button class="v-btn-ghost v-btn--sm" disabled={!nExport.ok} onclick={() => openDialog({ kind: 'export', db, tables: sel })}>{t('overview.export')}</button>
+        <button class="v-btn-ghost v-btn--sm" disabled={!selTablesOnly} onclick={() => openDialog({ kind: 'maintenance', db, tables: sel })}>{t('overview.maintenance')}</button>
+        <button class="v-btn-ghost v-btn--sm" disabled={!selTablesOnly || !need(['ALTER']).ok} title={needText(need(['ALTER']))} onclick={() => openDialog({ kind: 'bulk', db, tables: sel })}>{t('overview.engineCollation')}</button>
+        <button class="v-btn-ghost v-btn--sm v-btn-ghost--danger" disabled={!selTablesOnly || !nWrite.ok} title={needText(nWrite)} onclick={() => openDialog({ kind: 'truncate', db, tables: sel })}>{t('overview.truncate')}…</button>
+        <button class="v-btn-ghost v-btn--sm v-btn-ghost--danger" disabled={!nWrite.ok} title={needText(nWrite)} onclick={() => openDialog({ kind: 'drop', db, tables: sel })}>{t('overview.drop')}…</button>
+        <button class="v-btn-ghost v-btn--sm v-selectionbar__clear" onclick={() => (selected = new Set())}>{t('overview.clearSelection')}</button>
+      </div>
+    {/if}
   </div>
 
   <div class="wrap">
@@ -187,23 +194,18 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
   .filter {
     width: 240px;
     max-width: 100%;
+    height: 36px;
     padding: 5px 10px;
     font-size: 13px;
   }
-  .spacer {
+  .bar .v-selectionbar {
     flex: 1;
-  }
-  .dim {
-    color: var(--sp-text-tertiary);
-    font-size: 12.5px;
-  }
-  .danger {
-    color: var(--sp-danger);
+    min-width: min(100%, 320px);
   }
   .wrap {
     overflow-x: auto;

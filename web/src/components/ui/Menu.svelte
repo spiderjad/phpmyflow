@@ -13,6 +13,8 @@
         danger?: boolean;
         /** Radio-like entries (relation display): a check on the left. */
         checked?: boolean;
+        /** With `checked`: an on/off option (menuitemcheckbox) instead of one of a set. */
+        toggle?: boolean;
         action?: () => void;
         submenu?: MenuItem[];
         /** Small text on the right ("Coming soon", a missing privilege). */
@@ -163,7 +165,7 @@
     <button
       class="v-menu__item mi"
       class:danger={item.danger}
-      role={item.checked !== undefined ? 'menuitemradio' : 'menuitem'}
+      role={item.checked !== undefined ? (item.toggle ? 'menuitemcheckbox' : 'menuitemradio') : 'menuitem'}
       tabindex="-1"
       data-i={inSub ? undefined : i}
       data-id={item.id}
