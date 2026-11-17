@@ -98,9 +98,9 @@ test('reset section, data settings and the editor follow Settings', async ({ pag
 });
 
 // The accent is what signals or is chosen, in the real app (not only the live preview):
-// with Forest and the violet swatch, the active tab, the current sidebar row and the main
-// button ("+ Add row") turn violet; the theme's own accent ("A") brings Forest's green back.
-test('a custom accent colors the active tab, the current sidebar row and "+ Add row"; "A" brings the theme back', async ({ page }) => {
+// with Forest and the violet swatch, the active tab, the current sidebar row, the main
+// button ("+ Add row") and the PK badge turn violet; "A" brings Forest's own colors back.
+test('a custom accent colors the active tab, the current sidebar row, "+ Add row" and the key badges; "A" brings the theme back', async ({ page }) => {
   await page.locator('nav.tables button[data-table="customers"]').click();
   await expect(page.getByRole('button', { name: '+ Add row' })).toBeVisible();
   const pick = async (accentName: string) => {
@@ -129,24 +129,21 @@ test('a custom accent colors the active tab, the current sidebar row and "+ Add 
       const tab = document.querySelector('nav.tabs button.active') as HTMLElement;
       const row = document.querySelector('nav.tables button[aria-current="page"]') as HTMLElement;
       const add = [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === '+ Add row') as HTMLElement;
-      const raw = { tab: getComputedStyle(tab).boxShadow, row: getComputedStyle(row).backgroundColor, add: getComputedStyle(add).backgroundColor };
-      return { tab: hue(raw.tab), row: hue(raw.row), add: hue(raw.add), raw };
+      const pk = document.querySelector('table.dg thead .ki-pk') as HTMLElement;
+      const raw = { tab: getComputedStyle(tab).boxShadow, row: getComputedStyle(row).backgroundColor, add: getComputedStyle(add).backgroundColor, pk: getComputedStyle(pk).color };
+      return { tab: hue(raw.tab), row: hue(raw.row), add: hue(raw.add), pk: hue(raw.pk), raw };
     });
   const violet = (h: number) => h >= 230 && h <= 300;
   const green = (h: number) => h >= 100 && h <= 170;
 
   // Colors ease in (CSS transitions): wait until they settle.
-  const settled = async (ok: (h: number) => boolean) => {
-    await expect
-      .poll(async () => {
-        const h = await hues();
-        return ok(h.tab) && ok(h.row) && ok(h.add);
-      }, { message: 'active tab, current sidebar row and "+ Add row" in the accent' })
-      .toBe(true);
+  const settled = async (ok: (h: { tab: number; row: number; add: number; pk: number }) => boolean) => {
+    await expect.poll(async () => ok(await hues()), { message: 'active tab, current sidebar row, "+ Add row" and PK badge in the accent' }).toBe(true);
   };
   await pick('Violet');
-  await settled(violet);
+  await settled((h) => violet(h.tab) && violet(h.row) && violet(h.add) && violet(h.pk));
 
+  // Forest's own: green signals; its PK badge is the theme's amber, not violet any more.
   await pick("The theme's (Forest)");
-  await settled(green);
+  await settled((h) => green(h.tab) && green(h.row) && green(h.add) && !violet(h.pk));
 });

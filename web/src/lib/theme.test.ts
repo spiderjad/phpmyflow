@@ -150,7 +150,7 @@ describe('every theme has its own look', () => {
 
 // lib/themeSurfaces.ts repeats a few CSS values for the accent math: they must stay equal.
 describe('the surfaces table matches the theme CSS', () => {
-  const KEYS: Record<string, string> = { bg: '--sp-bg', text: '--sp-text-primary', textMuted: '--sp-text-secondary', sidebarBg: '--sidebar-bg', sidebarText: '--sidebar-text', topbarBg: '--topbar-bg', accent: '--sp-inverse' };
+  const KEYS: Record<string, string> = { bg: '--sp-bg', text: '--sp-text-primary', textMuted: '--sp-text-secondary', sidebarBg: '--sidebar-bg', sidebarText: '--sidebar-text', topbarBg: '--topbar-bg', gridHeaderBg: '--grid-header-bg', accent: '--sp-inverse' };
   for (const theme of THEMES)
     for (const mode of ['light', 'dark'] as const)
       it(`${theme} / ${mode}`, () => {
@@ -184,6 +184,10 @@ describe('a custom accent stays AA on every theme', () => {
           need(s.text, r['--grid-row-selected'], 4.5, 'text on a selected row');
           need(s.textMuted, r['--grid-row-selected'], 4.5, 'muted text on a selected row');
           need(r['--chip-text'], r['--chip-bg'], 4.5, 'chip');
+          for (const k of ['--badge-pk', '--badge-index']) {
+            need(r[k], s.gridHeaderBg, 4.5, `${k} on the grid header`);
+            need(r[k], s.bg, 4.5, `${k} on the page`);
+          }
         }
         expect(failures).toEqual([]);
       });

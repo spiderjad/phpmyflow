@@ -126,6 +126,8 @@ export const ACCENT_ROLE_VARS = [
   '--chip-bg',
   '--chip-text',
   '--chip-border',
+  '--badge-pk',
+  '--badge-index',
 ] as const;
 
 /**
@@ -133,7 +135,9 @@ export const ACCENT_ROLE_VARS = [
  * the primary button is the accent itself (its text white or black, AA); lines
  * and rings are moved until 3:1 on the surface they sit on; soft fills (current
  * sidebar row, selected grid row, chips) mix the accent into the surface and
- * keep their text at 4.5:1. AA is checked for every theme, mode and color.
+ * keep their text at 4.5:1; key badges are text on the grid header and the
+ * page (PK in the accent, the others halfway to the muted text, so they stay
+ * apart). AA is checked for every theme, mode and color.
  */
 export function accentRoles(accent: string, s: ThemeSurfaces, mode: 'light' | 'dark'): Record<string, string> {
   const on = onColor(accent);
@@ -150,6 +154,8 @@ export function accentRoles(accent: string, s: ThemeSurfaces, mode: 'light' | 'd
     selected = mix(s.bg, accent, t);
   }
   const chipBg = mix(s.bg, accent, mode === 'dark' ? 0.18 : 0.1);
+  /** Text on the grid header and on the page (comfortable header, Structure). */
+  const badge = (c: string) => ensureContrast(ensureContrast(c, s.gridHeaderBg, 4.5), s.bg, 4.5);
   return {
     '--sp-inverse': accent,
     '--sp-inverse-hover': hover,
@@ -168,6 +174,8 @@ export function accentRoles(accent: string, s: ThemeSurfaces, mode: 'light' | 'd
     '--chip-bg': chipBg,
     '--chip-text': ensureContrast(mode === 'dark' ? mix(accent, '#ffffff', 0.45) : mix(accent, '#000000', 0.3), chipBg, 4.5),
     '--chip-border': mix(s.bg, accent, mode === 'dark' ? 0.38 : 0.3),
+    '--badge-pk': badge(accent),
+    '--badge-index': badge(mix(accent, s.textMuted, 0.5)),
   };
 }
 
