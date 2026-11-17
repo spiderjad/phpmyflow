@@ -1,13 +1,16 @@
 <script lang="ts">
-  // Accent: the theme's own, one of the 8 system colors (they follow the
-  // mode) or any color. role="radiogroup" with arrow keys. When the accent is
-  // under 4.5:1 on the background, a warning says so; the text on accent
-  // buttons is always switched to white or black (lib/theme.ts accentVars).
+  // Accent: the theme's own ("A", the default and what choosing a theme brings
+  // back), or a custom one: one of the 8 system colors (they follow the mode)
+  // or any color. A custom accent says so ("Custom (over Spider)"): it replaces
+  // the theme's in buttons, links and focus; the sidebar and the bars keep the
+  // theme. role="radiogroup" with arrow keys. Under 4.5:1 on the background a
+  // warning says so; the text on accent buttons is always switched to white or
+  // black (lib/theme.ts accentVars).
   import { tick } from 'svelte';
   import { t, n } from '../../lib/i18n.svelte';
   import { accentHex, checkAccent, COLORS, currentBg, onThemeChange, PALETTE, type ColorId } from '../../lib/theme';
 
-  let { value, disabled = false, onchange }: { value: string | null; disabled?: boolean; onchange: (v: string | null) => void } = $props();
+  let { value, theme, disabled = false, onchange }: { value: string | null; theme: string; disabled?: boolean; onchange: (v: string | null) => void } = $props();
 
   // Current mode and background (they change with the theme and the OS).
   let mode = $state<'light' | 'dark'>(document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'light');
@@ -48,7 +51,7 @@
     await tick();
     root.querySelectorAll<HTMLElement>('[role="radio"]')[j]?.focus();
   }
-  const label = (c: string | null) => (c === null ? t('settings.accentTheme') : c === 'custom' ? t('settings.accentCustom') : t(`color.${c}`));
+  const label = (c: string | null) => (c === null ? t('settings.accentThemeOf', { theme }) : c === 'custom' ? t('settings.accentCustom') : t(`color.${c}`));
 </script>
 
 <div class="st-accent">
@@ -88,6 +91,15 @@
     <span class="mono">{isCustom ? value : ''}</span>
   </label>
 </div>
+<p class="st-acc-state" class:over={value !== null} aria-live="polite">
+  {#if value === null}
+    {t('settings.accentThemeOf', { theme })}
+  {:else}
+    <strong>{t('settings.accentOver', { theme })}</strong>
+    <span>{t('settings.accentOverHint')}</span>
+    <button type="button" class="v-btn-ghost v-btn--sm st-acc-back" {disabled} onclick={() => onchange(null)}>{t('settings.accentBack')}</button>
+  {/if}
+</p>
 {#if check}
   {#if check.ok}
     <p class="v-help st-acc-ok">{t('settings.accentOk', { ratio: n(Math.round(check.ratio * 10) / 10) })}</p>
@@ -99,6 +111,24 @@
 {/if}
 
 <style>
+  /* Which accent is in use: the theme's, or a custom one over the theme. */
+  .st-acc-state {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    color: var(--sp-text-secondary);
+  }
+  .st-acc-state.over strong {
+    flex-basis: 100%;
+    color: var(--sp-text-primary);
+    font-weight: 600;
+  }
+  .st-acc-back {
+    margin-left: 2px;
+  }
   /* Accent swatches (Settings › Appearance). */
   .st-accent {
     display: flex;

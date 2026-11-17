@@ -11,7 +11,7 @@ function blocks(file: string): Map<string, Record<string, string>> {
   // ":root[...]" possibly followed by more selectors (",\n[data-mode-scope='light']").
   for (const m of css.matchAll(/:root((?:\[[^\]]+\])+)(?:\s*,[^{]*)?\s*\{([^}]*)\}/g)) {
     const vars: Record<string, string> = {};
-    for (const v of m[2].matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,6})\s*;/g)) vars[v[1]] = v[2];
+    for (const v of m[2].matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,6}|[01])\s*;/g)) vars[v[1]] = v[2];
     out.set(m[1].replace(/['"]/g, ''), vars);
   }
   return out;
@@ -47,6 +47,49 @@ const PAIRS: [string, string, number][] = [
   ['--sp-text-primary', '--sp-danger-light', 4.5],
   ['--sp-text-primary', '--sp-warning-light', 4.5],
   ['--sp-text-primary', '--sp-success-light', 4.5],
+  // Role tokens (styles/themes/modes.css lists them): sidebar…
+  ['--sidebar-text', '--sidebar-bg', 4.5],
+  ['--sidebar-text-muted', '--sidebar-bg', 4.5],
+  ['--sidebar-text', '--sidebar-hover', 4.5],
+  ['--sidebar-text-muted', '--sidebar-hover', 4.5],
+  ['--sidebar-active-text', '--sidebar-active-bg', 4.5],
+  ['--sidebar-on-accent', '--sidebar-accent', 4.5], // database initial, avatar
+  ['--sidebar-accent', '--sidebar-bg', 3],
+  ['--sidebar-focus', '--sidebar-bg', 3],
+  // …top bar and tabs…
+  ['--topbar-text', '--topbar-bg', 4.5],
+  ['--topbar-text-muted', '--topbar-bg', 4.5],
+  ['--topbar-text', '--topbar-hover', 4.5],
+  ['--topbar-text-muted', '--topbar-hover', 4.5],
+  ['--tab-active-indicator', '--topbar-bg', 3],
+  // …data grid…
+  ['--grid-header-text', '--grid-header-bg', 4.5],
+  ['--sp-text-secondary', '--grid-header-bg', 4.5],
+  ['--sp-text-primary', '--grid-row-alt', 4.5],
+  ['--sp-text-primary', '--grid-row-hover', 4.5],
+  ['--sp-text-primary', '--grid-row-selected', 4.5],
+  ['--sp-text-secondary', '--grid-row-alt', 4.5],
+  ['--sp-text-secondary', '--grid-row-selected', 4.5],
+  ['--grid-cell-focus', '--sp-bg', 3],
+  // …relation chips and key badges (grid header and Structure)…
+  ['--chip-text', '--chip-bg', 4.5],
+  ['--badge-pk', '--grid-header-bg', 4.5],
+  ['--badge-index', '--grid-header-bg', 4.5],
+  ['--badge-pk', '--sp-bg', 4.5],
+  ['--badge-index', '--sp-bg', 4.5],
+  // …surfaces (page, side panels, what floats)…
+  ['--sp-text-primary', '--surface-1', 4.5],
+  ['--sp-text-primary', '--surface-2', 4.5],
+  ['--sp-text-primary', '--surface-3', 4.5],
+  ['--sp-text-secondary', '--surface-2', 4.5],
+  ['--sp-text-secondary', '--surface-3', 4.5],
+  // …and the theme's SQL syntax on the editor background.
+  ['--syn-keyword', '--sp-bg', 4.5],
+  ['--syn-string', '--sp-bg', 4.5],
+  ['--syn-number', '--sp-bg', 4.5],
+  ['--syn-comment', '--sp-bg', 4.5],
+  ['--syn-type', '--sp-bg', 4.5],
+  ['--syn-ident', '--sp-bg', 4.5],
 ];
 
 describe('every theme passes AA in both modes', () => {
@@ -61,14 +104,46 @@ describe('every theme passes AA in both modes', () => {
           const r = contrast(tk[fg], tk[bg]);
           if (r < min) failures.push(`${fg} ${tk[fg]} on ${bg} ${tk[bg]}: ${r.toFixed(2)} < ${min}`);
         }
-        // Connection colors are shown as text (env label) on the page background.
+        // Connection colors are shown as text (env label) on the page background, and on the
+        // top bar in their dark variant when the theme says the bar is dark (--topbar-dark: 1).
+        const topDark = tk['--topbar-dark'] === '1';
         for (const c of COLORS) {
           const r = contrast(PALETTE[c][mode], tk['--sp-bg']);
           if (r < 4.5) failures.push(`palette ${c} ${PALETTE[c][mode]} on --sp-bg: ${r.toFixed(2)}`);
+          const onBar = PALETTE[c][topDark ? 'dark' : 'light'];
+          const rb = contrast(onBar, tk['--topbar-bg']);
+          if (rb < 4.5) failures.push(`palette ${c} ${onBar} on --topbar-bg: ${rb.toFixed(2)}`);
         }
+        // Focus ring: 3:1 on the page, or (High contrast) a halo that is 3:1 on the page and around the ring.
+        const halo = tk['--focus-halo'];
+        if (halo) {
+          if (contrast(halo, tk['--sp-bg']) < 3 && contrast(tk['--focus-ring'], tk['--sp-bg']) < 3) failures.push('focus halo on --sp-bg');
+          if (contrast(tk['--focus-ring'], halo) < 3) failures.push('focus ring on its halo');
+        } else if (contrast(tk['--focus-ring'], tk['--sp-bg']) < 3) failures.push(`--focus-ring on --sp-bg: ${contrast(tk['--focus-ring'], tk['--sp-bg']).toFixed(2)}`);
         expect(failures).toEqual([]);
       });
     }
+  }
+});
+
+// Themes must be told apart at a glance (a thumbnail): sidebar, its current row, top bar,
+// accent and grid header together differ between any two themes of the same mode.
+describe('every theme has its own look', () => {
+  const SIGNATURE = ['--sidebar-bg', '--sidebar-active-bg', '--topbar-bg', '--sp-inverse', '--grid-header-bg'];
+  const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const dist = (a: string, b: string) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]));
+  for (const mode of ['light', 'dark'] as const) {
+    it(mode, () => {
+      const close: string[] = [];
+      THEMES.forEach((a, i) =>
+        THEMES.slice(i + 1).forEach((b) => {
+          const [ta, tb] = [tokens(a, mode), tokens(b, mode)];
+          const d = SIGNATURE.reduce((sum, k) => sum + dist(ta[k], tb[k]), 0);
+          if (d < 150) close.push(`${a} ~ ${b}: ${d.toFixed(0)}`);
+        }),
+      );
+      expect(close).toEqual([]);
+    });
   }
 });
 

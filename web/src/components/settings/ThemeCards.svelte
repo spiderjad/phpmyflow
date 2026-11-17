@@ -36,16 +36,17 @@
     >
       <span class="st-thumbs" aria-hidden="true">
         {#each ['light', 'dark'] as m}
+          <!-- A miniature of the real frame: sidebar with its current row, top bar with the
+               active tab, grid header, striped and selected rows, a relation chip, the accent. -->
           <span class="st-thumb" data-preview-theme={th} data-mode-scope={m}>
-            <span class="tb"><span class="dot"></span><span class="ln w40"></span></span>
-            <span class="body">
-              <span class="side"><span class="ln w70"></span><span class="ln w50 on"></span><span class="ln w60"></span></span>
-              <span class="grid">
-                <span class="row"><span class="ln w30"></span><span class="ln w50"></span></span>
-                <span class="row"><span class="ln w40"></span><span class="ln w30"></span></span>
-                <span class="row"><span class="ln w30"></span><span class="ln w40"></span></span>
-                <span class="btn"></span>
-              </span>
+            <span class="side"><span class="mk"></span><span class="sl w70"></span><span class="sl on"></span><span class="sl w50"></span><span class="sl w60"></span></span>
+            <span class="main">
+              <span class="tb"><span class="ln w30"></span><span class="tab"></span></span>
+              <span class="gh"><span class="ln w30"></span><span class="ln w40"></span></span>
+              <span class="row"><span class="ln w30"></span><span class="chip"></span></span>
+              <span class="row alt"><span class="ln w40"></span><span class="chip"></span></span>
+              <span class="row sel"><span class="ln w30"></span><span class="chip"></span></span>
+              <span class="btn"></span>
             </span>
           </span>
         {/each}
@@ -104,62 +105,102 @@
     gap: 4px;
     margin-bottom: 4px;
   }
-  /* The thumbnail: everything below reads the scoped tokens. */
+  /* The thumbnail: everything below reads the scoped tokens (the theme's role tokens). */
   .st-thumb {
     display: grid;
-    grid-template-rows: 10px 1fr;
-    height: 66px;
+    grid-template-columns: 30% 1fr;
+    height: 70px;
     overflow: hidden;
     border: 1px solid var(--sp-border);
     border-radius: 6px;
-    background: var(--sp-bg);
-  }
-  .tb {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 0 4px;
-    border-bottom: 1px solid var(--sp-border);
-  }
-  .dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--sp-text-primary);
-  }
-  .body {
-    display: grid;
-    grid-template-columns: 30% 1fr;
+    background: var(--surface-1);
   }
   .side {
     display: grid;
     align-content: start;
     gap: 3px;
     padding: 4px 3px;
-    background: var(--sp-bg-subtle);
-    border-right: 1px solid var(--sp-border);
+    background: var(--sidebar-image, none), var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
   }
-  .grid {
+  .mk {
+    width: 7px;
+    height: 7px;
+    margin-bottom: 1px;
+    border-radius: 2px;
+    background: var(--sidebar-accent);
+  }
+  .sl {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--sidebar-text-muted);
+  }
+  .sl.on {
+    height: 7px;
+    background: var(--sidebar-active-bg);
+    box-shadow: inset 2px 0 0 var(--sidebar-active-indicator);
+  }
+  .main {
     position: relative;
     display: grid;
-    align-content: start;
+    grid-template-rows: 11px 9px repeat(3, 1fr);
+    min-width: 0;
+  }
+  .tb {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 4px;
+    background: var(--topbar-bg);
+    border-bottom: 1px solid var(--topbar-border);
+  }
+  .tb .ln {
+    background: var(--topbar-text);
+  }
+  .tab {
+    width: 12px;
+    height: 100%;
+    margin-left: auto;
+    box-shadow: inset 0 -2px 0 var(--tab-active-indicator);
+  }
+  .gh {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 3px;
+    background: var(--grid-header-bg);
+    border-bottom: 1px solid var(--sp-border);
+  }
+  .gh .ln {
+    background: var(--grid-header-text);
   }
   .row {
     display: flex;
+    align-items: center;
     gap: 3px;
-    padding: 3px;
+    padding: 0 3px;
+    background: var(--surface-1);
     border-bottom: 1px solid var(--sp-border);
+  }
+  .row.alt {
+    background: var(--grid-row-alt);
+  }
+  .row.sel {
+    background: var(--grid-row-selected);
   }
   .ln {
     display: block;
     height: 3px;
     border-radius: 2px;
     background: var(--sp-text-secondary);
-    opacity: 0.7;
   }
-  .ln.on {
-    background: var(--sp-text-primary);
-    opacity: 1;
+  .chip {
+    width: 14px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--chip-bg);
+    box-shadow: inset 0 0 0 1px var(--chip-border);
   }
   .w30 { width: 30%; }
   .w40 { width: 40%; }
@@ -169,9 +210,9 @@
   .btn {
     position: absolute;
     right: 4px;
-    bottom: 4px;
-    width: 18px;
-    height: 7px;
+    bottom: 3px;
+    width: 16px;
+    height: 6px;
     border-radius: 2px;
     background: var(--sp-inverse);
   }

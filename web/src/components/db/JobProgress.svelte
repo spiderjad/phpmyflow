@@ -138,7 +138,7 @@
     padding: 14px;
     border: 1px solid var(--sp-border);
     border-radius: var(--sp-radius-lg);
-    background: var(--sp-bg);
+    background: var(--surface-3);
     box-shadow: var(--sp-shadow-lg);
     font-size: 12.5px;
   }

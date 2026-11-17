@@ -1128,9 +1128,9 @@
     min-width: 0;
     display: flex;
     /* Selection colors (spider-ui has no selection tokens yet; see docs/spider-ui-gaps.md). */
-    --sel-edge: var(--sp-focus);
-    --sel-bg: color-mix(in srgb, var(--sp-focus) 7%, var(--sp-bg));
-    --sel-head: color-mix(in srgb, var(--sp-focus) 12%, var(--sp-bg-subtle));
+    --sel-edge: var(--grid-cell-focus);
+    --sel-bg: var(--grid-row-selected);
+    --sel-head: var(--grid-row-selected);
   }
   .dg-col {
     flex: 1;
@@ -1179,14 +1179,14 @@
     border-bottom-color: color-mix(in srgb, var(--sp-border) 60%, transparent);
   }
   .comfortable .dg thead th {
-    --th-bg: var(--sp-bg);
+    --th-bg: var(--surface-1);
     background: var(--th-bg);
     border-bottom-color: var(--sp-border);
     font-weight: 500;
   }
 
   .dg thead th {
-    --th-bg: var(--sp-bg-subtle);
+    --th-bg: var(--grid-header-bg);
     position: sticky;
     top: 0;
     z-index: 2;
@@ -1224,7 +1224,7 @@
     vertical-align: middle;
   }
   .dg tbody tr:hover > * {
-    background: var(--sp-bg-muted);
+    background: var(--grid-row-hover);
   }
   /* The row of the active cell (and fully selected rows): accent edge on the row header. */
   .dg tbody tr.active-row > th.rh,
@@ -1244,7 +1244,7 @@
   }
   .dg td:focus,
   .dg th[data-r]:focus {
-    outline: 2px solid var(--sp-focus);
+    outline: 2px solid var(--grid-cell-focus);
     outline-offset: -2px;
   }
   .mono {
@@ -1306,9 +1306,10 @@
     max-width: 100%;
     height: 20px;
     padding: 0 7px 0 3px;
-    border: 1px solid var(--sp-border);
+    border: 1px solid var(--chip-border);
     border-radius: 999px;
-    background: var(--sp-bg-subtle);
+    background: var(--chip-bg);
+    color: var(--chip-text);
     vertical-align: middle;
     line-height: 1;
   }
@@ -1320,8 +1321,8 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--sp-text-primary) 12%, var(--sp-bg));
-    color: var(--sp-text-secondary);
+    background: color-mix(in srgb, var(--chip-text) 14%, var(--chip-bg));
+    color: var(--chip-text);
     font-size: 9px;
     font-weight: 700;
   }
@@ -1549,7 +1550,7 @@
     outline-offset: 1px;
   }
   .th-name {
-    color: var(--sp-text-primary);
+    color: var(--grid-header-text);
     overflow: hidden;
     text-overflow: ellipsis;
   }

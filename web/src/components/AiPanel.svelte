@@ -142,7 +142,7 @@
     flex-direction: column;
     min-height: 0;
     border-left: 1px solid var(--sp-border);
-    background: var(--sp-bg);
+    background: var(--surface-2);
   }
   header {
     display: flex;

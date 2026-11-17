@@ -34,7 +34,7 @@
     z-index: 61;
     display: flex;
     flex-direction: column;
-    background: var(--sp-bg);
+    background: var(--surface-3);
     border-left: 1px solid var(--sp-border);
     box-shadow: var(--sp-shadow-lg);
     animation: slide 150ms ease-out;

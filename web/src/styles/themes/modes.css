@@ -50,6 +50,47 @@
   --sp-warning: #92400e;
   --sp-warning-light: #fffbeb;
   --sp-warning-border: #fde68a;
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #f4f4f4;
+  --sidebar-text: #0a0a0a;
+  --sidebar-text-muted: #525252;
+  --sidebar-hover: #e7e7e7;
+  --sidebar-border: #e2e2e2;
+  --sidebar-active-bg: #0a0a0a;
+  --sidebar-active-text: #ffffff;
+  --sidebar-active-indicator: #0a0a0a;
+  --sidebar-accent: #0a0a0a;
+  --sidebar-on-accent: #ffffff;
+  --sidebar-focus: #0a0a0a;
+  --topbar-bg: #ffffff;
+  --topbar-text: #0a0a0a;
+  --topbar-text-muted: #525252;
+  --topbar-hover: #f2f2f2;
+  --topbar-border: #eaeaea;
+  --tab-active-indicator: #0a0a0a;
+  --grid-header-bg: #f5f5f5;
+  --grid-header-text: #0a0a0a;
+  --grid-row-alt: #fafafa;
+  --grid-row-hover: #f0f0f0;
+  --grid-row-selected: #e5e5e5;
+  --grid-cell-focus: #0a0a0a;
+  --chip-bg: #f0f0f0;
+  --chip-text: #171717;
+  --chip-border: #dcdcdc;
+  --badge-pk: #0a0a0a;
+  --badge-index: #525252;
+  --surface-1: #ffffff;
+  --surface-2: #fafafa;
+  --surface-3: #ffffff;
+  --focus-ring: #0a0a0a;
+  --syn-keyword: #0550ae;
+  --syn-string: #0a7a3c;
+  --syn-number: #b35900;
+  --syn-comment: #6e6e6e;
+  --syn-type: #8250df;
+  --syn-ident: #24292f;
+  --topbar-dark: 0; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
 }
 
 :root[data-mode='dark'],
@@ -90,6 +131,47 @@
   --sp-warning: #fbbf24;
   --sp-warning-light: #261c07;
   --sp-warning-border: #78350f;
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #141414;
+  --sidebar-text: #ededed;
+  --sidebar-text-muted: #a3a3a3;
+  --sidebar-hover: #222222;
+  --sidebar-border: #262626;
+  --sidebar-active-bg: #ededed;
+  --sidebar-active-text: #0a0a0a;
+  --sidebar-active-indicator: #ededed;
+  --sidebar-accent: #ededed;
+  --sidebar-on-accent: #0a0a0a;
+  --sidebar-focus: #ededed;
+  --topbar-bg: #0a0a0a;
+  --topbar-text: #ededed;
+  --topbar-text-muted: #a3a3a3;
+  --topbar-hover: #1f1f1f;
+  --topbar-border: #2a2a2a;
+  --tab-active-indicator: #ededed;
+  --grid-header-bg: #141414;
+  --grid-header-text: #ededed;
+  --grid-row-alt: #101010;
+  --grid-row-hover: #1c1c1c;
+  --grid-row-selected: #2b2b2b;
+  --grid-cell-focus: #ededed;
+  --chip-bg: #1f1f1f;
+  --chip-text: #e5e5e5;
+  --chip-border: #333333;
+  --badge-pk: #ededed;
+  --badge-index: #a3a3a3;
+  --surface-1: #0a0a0a;
+  --surface-2: #111111;
+  --surface-3: #171717;
+  --focus-ring: #ededed;
+  --syn-keyword: #79b8ff;
+  --syn-string: #85e89d;
+  --syn-number: #ffab70;
+  --syn-comment: #8f8f8f;
+  --syn-type: #d2a8ff;
+  --syn-ident: #ededed;
+  --topbar-dark: 1; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
 }
 
 /* Corners (Settings › Appearance). "soft" = spider-ui default. */

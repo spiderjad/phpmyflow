@@ -457,12 +457,24 @@
 <style>
   /* Sidebar only (pmf- = phpMyFlow). The frame classes come from spider-ui (shell.css). */
 
-  /* The current row and the marks take the theme accent instead of violet. */
+  /* The theme's sidebar (dark in Graphite, Slate, Spider and Forest): spider-ui's frame
+     classes inside read these, so the current row, marks and fields follow the theme. */
   .side {
-    --sp-primary: var(--sp-inverse);
-    --sp-on-primary: var(--sp-on-inverse);
-    --sp-primary-light: color-mix(in srgb, var(--sp-inverse) 10%, var(--sp-bg));
-    --sp-primary-text: color-mix(in srgb, var(--sp-inverse) 70%, var(--sp-text-primary));
+    --sp-bg: var(--sidebar-bg);
+    --sp-bg-subtle: var(--sidebar-bg);
+    --sp-bg-muted: var(--sidebar-hover);
+    --sp-border: var(--sidebar-border);
+    --sp-border-hover: var(--sidebar-text-muted);
+    --sp-text-primary: var(--sidebar-text);
+    --sp-text-secondary: var(--sidebar-text-muted);
+    --sp-text-tertiary: var(--sidebar-text-muted);
+    --sp-primary: var(--sidebar-accent);
+    --sp-on-primary: var(--sidebar-on-accent);
+    --sp-primary-light: var(--sidebar-active-bg);
+    --sp-primary-text: var(--sidebar-active-text);
+    --sp-focus: var(--sidebar-focus);
+    background: var(--sidebar-image, none), var(--sidebar-bg);
+    color: var(--sidebar-text);
     flex: 1;
     min-width: 0;
     min-height: 0;
@@ -613,7 +625,9 @@
     background: var(--sp-bg-muted);
   }
   .pmf-row :global(.v-nav-item[aria-current='page']) {
-    background: var(--sp-primary-light);
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    box-shadow: inset 3px 0 0 var(--sidebar-active-indicator);
   }
   .pmf-value {
     flex-shrink: 0;

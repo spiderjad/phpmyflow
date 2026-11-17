@@ -1,6 +1,7 @@
-/* phpMyFlow theme · Slate: blue-grey.
+/* phpMyFlow theme · Slate: blue-grey, a slate top bar and sidebar (one frame), steel blue accent.
  * [data-preview-theme][data-mode-scope]: the same tokens on a subtree (theme cards in Settings).
- * Only the tokens that differ from styles/themes/modes.css (Monochrome = spider-ui). */
+ * The role tokens (--sidebar-*, --topbar-*, --grid-*, --chip-*, --badge-*, --surface-*, --focus-ring, --syn-*)
+ * are listed in styles/themes/modes.css; src/lib/theme.test.ts checks AA for every pair. */
 :root[data-theme='slate'][data-mode='light'],
 [data-preview-theme='slate'][data-mode-scope='light'] {
   --sp-bg: #ffffff;
@@ -12,10 +13,51 @@
   --sp-text-primary: #0f172a;
   --sp-text-secondary: #475569;
   --sp-text-tertiary: #64748b;
-  --sp-inverse: #1e293b;
-  --sp-inverse-hover: #334155;
-  --sp-on-inverse: #f8fafc;
-  --sp-focus: #1e293b;
+  --sp-inverse: #2f5f8a;
+  --sp-inverse-hover: #244a6d;
+  --sp-on-inverse: #ffffff;
+  --sp-focus: #2f5f8a;
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #1e293b;
+  --sidebar-text: #f1f5f9;
+  --sidebar-text-muted: #a9b8cc;
+  --sidebar-hover: #2a3850;
+  --sidebar-border: #2e3b51;
+  --sidebar-active-bg: #33496b;
+  --sidebar-active-text: #ffffff;
+  --sidebar-active-indicator: #7fb2e5;
+  --sidebar-accent: #7fb2e5;
+  --sidebar-on-accent: #0f172a;
+  --sidebar-focus: #93c5fd;
+  --topbar-bg: #1e293b;
+  --topbar-text: #f8fafc;
+  --topbar-text-muted: #b6c2d3;
+  --topbar-hover: #2a3850;
+  --topbar-border: #0f172a;
+  --tab-active-indicator: #93c5fd;
+  --grid-header-bg: #e2e8f0;
+  --grid-header-text: #0f172a;
+  --grid-row-alt: #f8fafc;
+  --grid-row-hover: #eef2f7;
+  --grid-row-selected: #dbe7f5;
+  --grid-cell-focus: #2f5f8a;
+  --chip-bg: #e2e8f0;
+  --chip-text: #1e293b;
+  --chip-border: #cbd5e1;
+  --badge-pk: #92400e;
+  --badge-index: #475569;
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #ffffff;
+  --focus-ring: #2f5f8a;
+  --syn-keyword: #1d4ed8;
+  --syn-string: #047857;
+  --syn-number: #b45309;
+  --syn-comment: #64748b;
+  --syn-type: #0e7490;
+  --syn-ident: #1e293b;
+  --topbar-dark: 1; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
 }
 :root[data-theme='slate'][data-mode='dark'],
 [data-preview-theme='slate'][data-mode-scope='dark'] {
@@ -28,8 +70,49 @@
   --sp-text-primary: #e2e8f0;
   --sp-text-secondary: #94a3b8;
   --sp-text-tertiary: #8291a6;
-  --sp-inverse: #e2e8f0;
-  --sp-inverse-hover: #cbd5e1;
-  --sp-on-inverse: #0f172a;
-  --sp-focus: #e2e8f0;
+  --sp-inverse: #7fb2e5;
+  --sp-inverse-hover: #a5c8ee;
+  --sp-on-inverse: #0b1120;
+  --sp-focus: #7fb2e5;
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #172133;
+  --sidebar-text: #e2e8f0;
+  --sidebar-text-muted: #9eadc2;
+  --sidebar-hover: #23314a;
+  --sidebar-border: #23314a;
+  --sidebar-active-bg: #2a4466;
+  --sidebar-active-text: #ffffff;
+  --sidebar-active-indicator: #7fb2e5;
+  --sidebar-accent: #7fb2e5;
+  --sidebar-on-accent: #0b1120;
+  --sidebar-focus: #93c5fd;
+  --topbar-bg: #172133;
+  --topbar-text: #f1f5f9;
+  --topbar-text-muted: #a5b4c8;
+  --topbar-hover: #23314a;
+  --topbar-border: #0b1120;
+  --tab-active-indicator: #7fb2e5;
+  --grid-header-bg: #131c2e;
+  --grid-header-text: #e2e8f0;
+  --grid-row-alt: #0f1626;
+  --grid-row-hover: #1a2438;
+  --grid-row-selected: #1b3354;
+  --grid-cell-focus: #7fb2e5;
+  --chip-bg: #1e293b;
+  --chip-text: #cbd5e1;
+  --chip-border: #334155;
+  --badge-pk: #fbbf24;
+  --badge-index: #a5b4c8;
+  --surface-1: #0b1120;
+  --surface-2: #0f172a;
+  --surface-3: #141e33;
+  --focus-ring: #7fb2e5;
+  --syn-keyword: #93c5fd;
+  --syn-string: #6ee7b7;
+  --syn-number: #fcd34d;
+  --syn-comment: #94a3b8;
+  --syn-type: #67e8f9;
+  --syn-ident: #e2e8f0;
+  --topbar-dark: 1; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
 }

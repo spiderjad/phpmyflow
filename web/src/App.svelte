@@ -424,8 +424,22 @@
     align-items: center;
     gap: 16px;
     padding: 0 12px 0 16px;
-    border-bottom: 1px solid var(--sp-border);
+    border-bottom: 1px solid var(--topbar-border);
     min-width: 0;
+    /* The theme's top bar (dark in Slate): what is inside reads these. */
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    --sp-bg: var(--topbar-bg);
+    --sp-bg-subtle: var(--topbar-bg);
+    --sp-bg-muted: var(--topbar-hover);
+    --sp-border: var(--topbar-border);
+    --sp-border-hover: var(--topbar-text-muted);
+    --sp-text-primary: var(--topbar-text);
+    --sp-text-secondary: var(--topbar-text-muted);
+    --sp-text-tertiary: var(--topbar-text-muted);
+  }
+  .content {
+    background: var(--surface-1);
   }
   .burger {
     display: none;
@@ -474,7 +488,7 @@
   .tabs button.active {
     color: var(--sp-text-primary);
     font-weight: 500;
-    box-shadow: inset 0 -2px 0 var(--sp-text-primary);
+    box-shadow: inset 0 -2px 0 var(--tab-active-indicator);
     border-radius: 0;
   }
   .right {
@@ -593,7 +607,8 @@
     padding: 1px 8px;
     border: 1px solid currentColor;
     border-radius: 999px;
-    color: var(--env-l);
+    /* The dark variant when the top bar is dark (--topbar-dark: 1, also in light Slate). */
+    color: color-mix(in srgb, var(--env-d) calc(var(--topbar-dark, 0) * 100%), var(--env-l));
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
@@ -605,9 +620,6 @@
   }
   :global(:root[data-mode='dark']) .conn-stripe {
     background: var(--env-d);
-  }
-  :global(:root[data-mode='dark']) .env-tag {
-    color: var(--env-d);
   }
   .alert-badge {
     margin-left: 4px;

@@ -85,6 +85,7 @@ phpMyFlow's look moved upstream as `data.css` (apps de datos) and `themes.css`:
 | Custom accent | Users pick an accent (8 swatches or any color). The package needs the derivation rules: hover, text on the accent (white or black by contrast), focus ring. | `accentVars()` in `lib/theme.ts`. |
 | 8-color palette | Named colors (red, orange, amber, green, teal, blue, violet, pink) with AA values per mode, for accents, connection colors and tags. | `PALETTE` in `lib/theme.ts`. |
 | Pre-paint script | Apps that store the theme in `localStorage` need a tiny inline script to set the attributes before paint (no flash). | `web/index.html`. |
+| Role tokens per theme | A theme that only changes greys and the button color is hard to tell apart. Each theme also needs tokens for the regions: sidebar (bg, text, muted, hover, border, active bg/text/indicator, accent, focus, an optional gradient), top bar (bg, text, muted, hover, border, active tab indicator, "dark bar" flag), grid (header bg/text, zebra, hover, selected, cell focus), chips, key badges, three surfaces, focus ring (+ halo for high contrast) and SQL syntax. | `styles/themes/*.css` (defaults in `modes.css`); the frame classes read them by remapping `--sp-*` inside `.side` and the top bar. Candidate for spider-ui `themes.css`. |
 
 ## Added for the login screen
 

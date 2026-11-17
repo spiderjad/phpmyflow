@@ -1,19 +1,20 @@
-/* phpMyFlow theme · High contrast: pure black and white, strong borders (accessibility).
+/* phpMyFlow theme · High contrast: black and white, 2 px borders, thick yellow focus, no in-between greys (accessibility).
  * [data-preview-theme][data-mode-scope]: the same tokens on a subtree (theme cards in Settings).
- * Only the tokens that differ from styles/themes/modes.css (Monochrome = spider-ui). */
+ * The role tokens (--sidebar-*, --topbar-*, --grid-*, --chip-*, --badge-*, --surface-*, --focus-ring, --syn-*)
+ * are listed in styles/themes/modes.css; src/lib/theme.test.ts checks AA for every pair. */
 :root[data-theme='contrast'][data-mode='light'],
 [data-preview-theme='contrast'][data-mode-scope='light'] {
   --sp-bg: #ffffff;
   --sp-bg-subtle: #ffffff;
-  --sp-bg-muted: #f0f0f0;
-  --sp-canvas: #e6e6e6;
-  --sp-border: #767676;
+  --sp-bg-muted: #fff6b0;
+  --sp-canvas: #ffffff;
+  --sp-border: #000000;
   --sp-border-hover: #000000;
   --sp-text-primary: #000000;
-  --sp-text-secondary: #262626;
-  --sp-text-tertiary: #4d4d4d;
+  --sp-text-secondary: #000000;
+  --sp-text-tertiary: #000000;
   --sp-inverse: #000000;
-  --sp-inverse-hover: #262626;
+  --sp-inverse-hover: #000000;
   --sp-on-inverse: #ffffff;
   --sp-focus: #000000;
   --sp-danger: #b91c1c;
@@ -21,25 +22,126 @@
   --sp-success: #166534;
   --sp-warning: #7c2d12;
   --sp-focus-ring: rgba(0, 0, 0, 0.25);
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #000000;
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #ffffff;
+  --sidebar-hover: #3d3500;
+  --sidebar-border: #000000;
+  --sidebar-active-bg: #ffd400;
+  --sidebar-active-text: #000000;
+  --sidebar-active-indicator: #ffd400;
+  --sidebar-accent: #ffffff;
+  --sidebar-on-accent: #000000;
+  --sidebar-focus: #ffd400;
+  --topbar-bg: #ffffff;
+  --topbar-text: #000000;
+  --topbar-text-muted: #000000;
+  --topbar-hover: #fff6b0;
+  --topbar-border: #000000;
+  --tab-active-indicator: #000000;
+  --grid-header-bg: #ffffff;
+  --grid-header-text: #000000;
+  --grid-row-alt: #ffffff;
+  --grid-row-hover: #fff6b0;
+  --grid-row-selected: #ffe14d;
+  --grid-cell-focus: #000000;
+  --chip-bg: #ffffff;
+  --chip-text: #000000;
+  --chip-border: #000000;
+  --badge-pk: #000000;
+  --badge-index: #000000;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #ffffff;
+  --focus-ring: #ffd400;
+  --syn-keyword: #00008b;
+  --syn-string: #8b0000;
+  --syn-number: #005000;
+  --syn-comment: #4a2a00;
+  --syn-type: #4b0082;
+  --syn-ident: #000000;
+  --topbar-dark: 0; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
+  --focus-halo: #000000;
 }
 :root[data-theme='contrast'][data-mode='dark'],
 [data-preview-theme='contrast'][data-mode-scope='dark'] {
   --sp-bg: #000000;
   --sp-bg-subtle: #000000;
-  --sp-bg-muted: #141414;
-  --sp-canvas: #0a0a0a;
-  --sp-border: #8a8a8a;
+  --sp-bg-muted: #3d3500;
+  --sp-canvas: #000000;
+  --sp-border: #ffffff;
   --sp-border-hover: #ffffff;
   --sp-text-primary: #ffffff;
-  --sp-text-secondary: #e0e0e0;
-  --sp-text-tertiary: #bdbdbd;
+  --sp-text-secondary: #ffffff;
+  --sp-text-tertiary: #ffffff;
   --sp-inverse: #ffffff;
-  --sp-inverse-hover: #e0e0e0;
+  --sp-inverse-hover: #ffd400;
   --sp-on-inverse: #000000;
-  --sp-focus: #ffffff;
+  --sp-focus: #ffd400;
   --sp-danger: #fca5a5;
   --sp-danger-text: #fecaca;
   --sp-success: #86efac;
   --sp-warning: #fde68a;
-  --sp-focus-ring: rgba(255, 255, 255, 0.35);
+  --sp-focus-ring: rgba(255, 212, 0, 0.45);
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #000000;
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #ffffff;
+  --sidebar-hover: #3d3500;
+  --sidebar-border: #ffffff;
+  --sidebar-active-bg: #ffd400;
+  --sidebar-active-text: #000000;
+  --sidebar-active-indicator: #ffd400;
+  --sidebar-accent: #ffffff;
+  --sidebar-on-accent: #000000;
+  --sidebar-focus: #ffd400;
+  --topbar-bg: #000000;
+  --topbar-text: #ffffff;
+  --topbar-text-muted: #ffffff;
+  --topbar-hover: #3d3500;
+  --topbar-border: #ffffff;
+  --tab-active-indicator: #ffd400;
+  --grid-header-bg: #000000;
+  --grid-header-text: #ffffff;
+  --grid-row-alt: #000000;
+  --grid-row-hover: #3d3500;
+  --grid-row-selected: #5c4f00;
+  --grid-cell-focus: #ffd400;
+  --chip-bg: #000000;
+  --chip-text: #ffffff;
+  --chip-border: #ffffff;
+  --badge-pk: #ffd400;
+  --badge-index: #ffffff;
+  --surface-1: #000000;
+  --surface-2: #000000;
+  --surface-3: #000000;
+  --focus-ring: #ffd400;
+  --syn-keyword: #9ecbff;
+  --syn-string: #ffb3b3;
+  --syn-number: #b3ffb3;
+  --syn-comment: #ffe680;
+  --syn-type: #e0b3ff;
+  --syn-ident: #ffffff;
+  --topbar-dark: 1; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
+  --focus-halo: #000000;
+}
+
+/* High contrast: 2 px borders on controls and panel edges, and a thick yellow focus
+   with a black halo (visible on white and on black). */
+:root[data-theme='contrast'] :is(.v-input, .v-btn-secondary, .v-btn-ghost, .v-btn-primary, .v-segmented, .v-badge, .v-kbd, .v-sidebar__search, .v-sidebar__add, .chip, .v-menu, .v-dialog) {
+  border-width: 2px;
+}
+:root[data-theme='contrast'] :is(.v-sidebar__panel) {
+  border-right-width: 2px;
+}
+:root[data-theme='contrast'] :is(header.top, table.dg thead th) {
+  border-bottom-width: 2px;
+}
+:root[data-theme='contrast'] :focus-visible {
+  outline: 3px solid var(--focus-ring) !important;
+  outline-offset: 1px !important;
+  box-shadow: 0 0 0 4px var(--focus-halo) !important;
 }

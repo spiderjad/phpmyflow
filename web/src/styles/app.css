@@ -27,20 +27,11 @@
   --chart-5: #7c7c7c;
   --chart-grid: #ececec;
 
-  /* Primary key icon (gold): AA on every theme's background. */
-  --key-pk: #a16207;
-
-  /* SQL syntax highlighting (editor). */
-  --syn-keyword: #0550ae;
-  --syn-string: #0a7a3c;
-  --syn-number: #b35900;
-  --syn-comment: #6e6e6e;
-  --syn-type: #8250df;
-  --syn-ident: #24292f;
+  /* SQL syntax colors (--syn-*), key badges (--badge-*) and the other role tokens
+     come from the theme: styles/themes/modes.css and one file per theme. */
 }
 
 :root[data-mode='dark'] {
-  --key-pk: #fbbf24;
   --chart-1: #60a5fa;
   --chart-2: #2dd4bf;
   --chart-3: #22d3ee;
@@ -49,12 +40,13 @@
   --chart-grid: #222222;
   --ai: #a78bfa;
   --ai-light: #1c1530;
-  --syn-keyword: #79b8ff;
-  --syn-string: #85e89d;
-  --syn-number: #ffab70;
-  --syn-comment: #8f8f8f;
-  --syn-type: #d2a8ff;
-  --syn-ident: #ededed;
+}
+
+/* Surfaces (theme role tokens): the page is --surface-1, side panels --surface-2,
+   what floats over the page (menus, dialogs, drawers) --surface-3. */
+.v-menu,
+.v-dialog {
+  background: var(--surface-3);
 }
 
 /* --- base --- */

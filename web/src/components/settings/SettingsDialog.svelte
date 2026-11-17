@@ -113,11 +113,12 @@
           </div>
           <div class="st-block">
             <span class="st-lbl">{t('settings.theme')}</span>
-            <ThemeCards value={settings.appearance.theme} disabled={locked} onchange={(v) => update('appearance', { theme: v })} />
+            <!-- A theme comes with its accent: choosing one drops a custom accent. -->
+            <ThemeCards value={settings.appearance.theme} disabled={locked} onchange={(v) => update('appearance', { theme: v, accent: null })} />
           </div>
           <div class="st-block">
             <span class="st-lbl">{t('settings.accent')}</span>
-            <AccentPicker value={settings.appearance.accent} disabled={locked} onchange={(v) => update('appearance', { accent: v })} />
+            <AccentPicker value={settings.appearance.accent} theme={t(`theme.name.${settings.appearance.theme}`)} disabled={locked} onchange={(v) => update('appearance', { accent: v })} />
           </div>
           <div class="st-row">
             <span class="st-lbl">{t('settings.density')}</span>

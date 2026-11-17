@@ -173,7 +173,7 @@
     overflow: hidden;
     border: 1px solid var(--sp-border);
     border-radius: 12px;
-    background: var(--sp-bg);
+    background: var(--surface-3);
     color: var(--sp-text-primary);
     box-shadow: var(--sp-shadow-lg);
   }

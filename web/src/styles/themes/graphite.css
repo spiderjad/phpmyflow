@@ -1,6 +1,7 @@
-/* phpMyFlow theme · Graphite: warm greys (stone).
+/* phpMyFlow theme · Graphite: warm greys (stone), a dark stone sidebar also in light mode, soft amber accent.
  * [data-preview-theme][data-mode-scope]: the same tokens on a subtree (theme cards in Settings).
- * Only the tokens that differ from styles/themes/modes.css (Monochrome = spider-ui). */
+ * The role tokens (--sidebar-*, --topbar-*, --grid-*, --chip-*, --badge-*, --surface-*, --focus-ring, --syn-*)
+ * are listed in styles/themes/modes.css; src/lib/theme.test.ts checks AA for every pair. */
 :root[data-theme='graphite'][data-mode='light'],
 [data-preview-theme='graphite'][data-mode-scope='light'] {
   --sp-bg: #fdfcfb;
@@ -12,10 +13,51 @@
   --sp-text-primary: #1c1917;
   --sp-text-secondary: #57534e;
   --sp-text-tertiary: #736b62;
-  --sp-inverse: #292524;
-  --sp-inverse-hover: #44403c;
-  --sp-on-inverse: #fafaf9;
-  --sp-focus: #292524;
+  --sp-inverse: #b45309;
+  --sp-inverse-hover: #92400e;
+  --sp-on-inverse: #ffffff;
+  --sp-focus: #b45309;
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #292524;
+  --sidebar-text: #f5f5f4;
+  --sidebar-text-muted: #b5aea7;
+  --sidebar-hover: #36312e;
+  --sidebar-border: #3a3532;
+  --sidebar-active-bg: #45403b;
+  --sidebar-active-text: #fde68a;
+  --sidebar-active-indicator: #f59e0b;
+  --sidebar-accent: #f59e0b;
+  --sidebar-on-accent: #1c1917;
+  --sidebar-focus: #fbbf24;
+  --topbar-bg: #fdfcfb;
+  --topbar-text: #1c1917;
+  --topbar-text-muted: #57534e;
+  --topbar-hover: #efece7;
+  --topbar-border: #e6e1da;
+  --tab-active-indicator: #b45309;
+  --grid-header-bg: #efebe5;
+  --grid-header-text: #1c1917;
+  --grid-row-alt: #f8f6f2;
+  --grid-row-hover: #f0ebe4;
+  --grid-row-selected: #f8e6c4;
+  --grid-cell-focus: #b45309;
+  --chip-bg: #efe9e0;
+  --chip-text: #44403c;
+  --chip-border: #ddd5c9;
+  --badge-pk: #92400e;
+  --badge-index: #57534e;
+  --surface-1: #fdfcfb;
+  --surface-2: #f7f5f2;
+  --surface-3: #ffffff;
+  --focus-ring: #b45309;
+  --syn-keyword: #9a3412;
+  --syn-string: #3f6212;
+  --syn-number: #a16207;
+  --syn-comment: #736b62;
+  --syn-type: #9d174d;
+  --syn-ident: #292524;
+  --topbar-dark: 0; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
 }
 :root[data-theme='graphite'][data-mode='dark'],
 [data-preview-theme='graphite'][data-mode-scope='dark'] {
@@ -28,8 +70,49 @@
   --sp-text-primary: #ece9e4;
   --sp-text-secondary: #b0a99f;
   --sp-text-tertiary: #8f877d;
-  --sp-inverse: #ece9e4;
-  --sp-inverse-hover: #cfc9c1;
-  --sp-on-inverse: #141210;
-  --sp-focus: #ece9e4;
+  --sp-inverse: #fbbf24;
+  --sp-inverse-hover: #fcd34d;
+  --sp-on-inverse: #1c1917;
+  --sp-focus: #fbbf24;
+  /* Roles (phpMyFlow): sidebar, top bar, grid, chips, key badges, surfaces, focus, SQL syntax. */
+  --sidebar-bg: #0c0a09;
+  --sidebar-text: #f5f5f4;
+  --sidebar-text-muted: #a8a29e;
+  --sidebar-hover: #1c1917;
+  --sidebar-border: #292524;
+  --sidebar-active-bg: #292524;
+  --sidebar-active-text: #fcd34d;
+  --sidebar-active-indicator: #f59e0b;
+  --sidebar-accent: #f59e0b;
+  --sidebar-on-accent: #1c1917;
+  --sidebar-focus: #fbbf24;
+  --topbar-bg: #141210;
+  --topbar-text: #ece9e4;
+  --topbar-text-muted: #b0a99f;
+  --topbar-hover: #262320;
+  --topbar-border: #34302c;
+  --tab-active-indicator: #fbbf24;
+  --grid-header-bg: #1d1a17;
+  --grid-header-text: #ece9e4;
+  --grid-row-alt: #171513;
+  --grid-row-hover: #262320;
+  --grid-row-selected: #3b2e14;
+  --grid-cell-focus: #fbbf24;
+  --chip-bg: #2a2622;
+  --chip-text: #e7e5e4;
+  --chip-border: #3d3833;
+  --badge-pk: #fbbf24;
+  --badge-index: #b0a99f;
+  --surface-1: #141210;
+  --surface-2: #1a1816;
+  --surface-3: #221f1c;
+  --focus-ring: #fbbf24;
+  --syn-keyword: #fdba74;
+  --syn-string: #bef264;
+  --syn-number: #fcd34d;
+  --syn-comment: #a8a29e;
+  --syn-type: #f9a8d4;
+  --syn-ident: #e7e5e4;
+  --topbar-dark: 1; /* 1 = connection colors use their dark variant on the top bar */
+  --sidebar-image: none;
 }

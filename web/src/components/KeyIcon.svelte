@@ -30,10 +30,10 @@
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
-    color: var(--sp-text-secondary);
+    color: var(--badge-index);
   }
   .ki-pk {
-    color: var(--key-pk);
+    color: var(--badge-pk);
   }
   .ki-fk,
   .ki-inferred {
