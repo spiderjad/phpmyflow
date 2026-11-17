@@ -9,7 +9,8 @@
   import { isSensitiveColumn, MASK } from '../lib/sensitive';
   import { toast } from '../lib/ui.svelte';
   import type { Cell, RefCount, Relation } from '../lib/api';
-  import { autoWidths, columnKind, filterKind, formatDate, formatDateFull, isBoolColumn, isHashColumn, isMonoColumn, jsonSummary, specialCell, visibleRange, type GridColumn } from '../lib/grid';
+  import { autoWidths, columnKind, filterKind, formatDate, formatDateFull, isBoolColumn, isHashColumn, isMonoColumn, jsonSummary, relativeDate, specialCell, typeIcon, visibleRange, type GridColumn } from '../lib/grid';
+  import { MENU_ICONS } from '../lib/menuIcons';
   import { app } from '../lib/state.svelte';
   import { copyAs, exportAs, type CopyFormat, type ExportFormat } from '../lib/gridExport';
   import { i18n, n, t } from '../lib/i18n.svelte';
@@ -66,6 +67,11 @@
     onsortdir,
     onopenfilter,
     onstructure,
+    total = null,
+    totalApprox = false,
+    more = false,
+    onmore,
+    loadingMore = false,
   }: {
     columns: GridColumn[];
     rows: Cell[][];
@@ -109,6 +115,13 @@
     /** Header menu: open the column in Structure. */
     onstructure?: (col: string) => void;
     emptyText?: string;
+    /** Rows in the whole table/filter (status bar "Row 120 of 501"); null = the rows given. */
+    total?: number | null;
+    totalApprox?: boolean;
+    /** Continuous scroll: more rows can be loaded; `onmore` asks for the next block. */
+    more?: boolean;
+    onmore?: () => void;
+    loadingMore?: boolean;
   } = $props();
 
   // --- visual order: pinned columns first, hidden ones out (identity = the parent's arrays) ---
@@ -151,7 +164,11 @@
   const relModeOf = (j: number) => relMode[columns[j]?.name] ?? settings.data.relations;
 
   const VIRTUAL_FROM = 500;
-  const HEAD_WIDTH = 56;
+  // Row gutter: no row number when the table has a primary key (the key says which row);
+  // results without one show it on hover. A box marks selected rows.
+  const HEAD_WIDTH = 40;
+  const hasPk = $derived(columns.some((c) => c.pk));
+  const icons = $derived(columns.map((c, j) => typeIcon(c, !!links[j])));
   const rowHeight = $derived(ROW_HEIGHT[prefs.density]);
   const kinds = $derived(columns.map((c) => columnKind(c.type)));
   // One typeface per data type: numbers, ids, dates and hashes in monospace, text in the UI font.
@@ -207,7 +224,9 @@
     if (bools[j] && (s === '0' || s === '1')) return { text: s === '1' ? '✓' : '—', cls: s === '1' ? 'c-bool on' : 'c-bool', title: s, aria: s === '1' ? t('common.yes') : t('common.no') };
     const kind = kinds[j];
     if (kind === 'date' || kind === 'datetime') {
-      return { text: settings.data.dates === 'locale' ? formatDate(s, kind, i18n.locale) : s, cls: '', title: formatDateFull(s, kind, i18n.locale, app.timeZone) };
+      const rel = relativeDate(s, i18n.locale);
+      const full = formatDateFull(s, kind, i18n.locale, app.timeZone);
+      return { text: settings.data.dates === 'locale' ? formatDate(s, kind, i18n.locale) : s, cls: '', title: rel ? `${rel}\n${full}` : full };
     }
     if (kind === 'text') {
       const js = jsonSummary(s);
@@ -270,7 +289,8 @@
     // Name and type share the column button; badges, sort and ⋯ sit beside it.
     const name = c.name.length * 7.6;
     const type = prefs.density === 'comfortable' ? (c.fullType ?? c.type).length * 6.8 : 0;
-    const side = badges + (onsort ? 22 : 0) + 24 + 12;
+    // Sort and ⋯ appear over the header on hover: they take no width (ids and booleans stay narrow).
+    const side = 18 + badges + 10 + (secret[j] ? 24 : 0);
     const padding = prefs.density === 'comfortable' ? 26 : 18;
     return Math.min(520, Math.round(Math.max(name, type) + side + padding));
   }
@@ -294,19 +314,38 @@
       detail = null;
     });
   });
-  // New rows (paging, refresh): selection indexes no longer mean the same rows.
+  // New rows (refresh, sort, filter): selection indexes no longer mean the same rows.
+  // A block appended by the continuous scroll keeps them.
+  let prevRows: Cell[][] = [];
   $effect(() => {
-    void rows;
+    const now = allRows;
     untrack(() => {
+      const appended = prevRows.length > 0 && now.length > prevRows.length && now[0] === prevRows[0];
+      prevRows = now;
+      if (appended) return;
       ranges = [];
       if (active.r >= rows.length) active = { r: 0, c: active.c };
+      if (scroller && scroller.scrollTop > 0) scroller.scrollTop = scrollTop = 0;
     });
   });
+  // Continuous scroll: ask for the next block near the end, or when the rows don't fill the view.
+  function nearEnd() {
+    if (!scroller || !more || !onmore || loadingMore) return;
+    if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - rowHeight * 15) onmore();
+  }
+  $effect(() => {
+    void allRows.length;
+    void more;
+    void loadingMore;
+    untrack(() => void tick().then(nearEnd));
+  });
+  const totalRows = $derived(total ?? rows.length);
   // Related columns: measured as "Name · id" (+ the follow arrow) once the names arrive.
   function measured(v: Cell, j: number): string {
     const lab = cellLabel(v, labels[j]);
     if (lab.kind !== 'label' || relModeOf(j) === 'id') return display(v, j);
-    return relModeOf(j) === 'name' ? `${lab.label}  ` : `${lab.label} · ${lab.id}  `;
+    // Chip: initial + padding + the follow arrow.
+    return relModeOf(j) === 'name' ? `${lab.label}      ` : `${lab.label}  ${lab.id}      `;
   }
   $effect(() => {
     if (!labels.some(Boolean)) return;
@@ -321,6 +360,7 @@
     void keyIcons;
     void prefs.density;
     void columnsKey;
+    void secret;
     untrack(() => setWidths(widths.map((w, j) => Math.max(w, headerWidth(j)))));
   });
   const totalWidth = $derived(HEAD_WIDTH + widths.reduce((a, b) => a + b, 0));
@@ -491,6 +531,7 @@
     if (editing || menu) return;
     const target = e.target as HTMLElement;
     if (!target.matches('[data-r]')) return;
+    if (e.altKey) return; // Alt+Up / Alt+Down: previous / next table (App)
     const page = Math.max(1, Math.floor((scroller?.clientHeight ?? 400) / rowHeight) - 2);
     const ext = e.shiftKey;
     const mod = e.ctrlKey || e.metaKey;
@@ -788,17 +829,18 @@
       onscroll={() => {
         scrollTop = scroller!.scrollTop;
         if (peek) peekEnd();
+        nearEnd();
       }}
       style:--rh="{rowHeight}px"
       style:--head-w="{HEAD_WIDTH}px"
-      style:--th-h={prefs.density === 'comfortable' ? '44px' : '30px'}
+      style:--th-h={prefs.density === 'comfortable' ? '46px' : '30px'}
     >
       <table
         class="dg"
         role="grid"
         aria-label={label}
         aria-multiselectable="true"
-        aria-rowcount={rows.length + 1}
+        aria-rowcount={totalRows + 1}
         aria-colcount={columns.length + 1}
         style:width="{totalWidth}px"
       >
@@ -810,7 +852,7 @@
           <tr aria-rowindex={1}>
             <th class="rh sticky-0 corner" scope="col">
               <button class="corner-btn" onclick={selectAll} aria-label={t('grid.selectAll')} title={t('grid.selectAll')}>
-                <span aria-hidden="true">#</span>
+                <span class="box" aria-hidden="true"></span>
               </button>
             </th>
             {#each columns as c, j}
@@ -824,6 +866,7 @@
                 title={(c.fullType ?? c.type) + (c.comment ? ' — ' + c.comment : '') + (pinned.includes(c.name) ? ' · ' + t('grid.pinned') : '')}
               >
                 <div class="th-in">
+                  <svg class="ticon" viewBox="0 0 16 16" aria-hidden="true"><path d={MENU_ICONS[icons[j]]} /></svg>
                   <button class="th-btn" onclick={(e) => columnHeaderClick(e, j)} aria-label={t('grid.selectColumn', { column: c.name })}>
                     <span class="th-line">
                       {#if !keyIcons && c.pk}<span class="pk">PK</span>{/if}
@@ -840,6 +883,7 @@
                       {/each}
                     </span>
                   {/if}
+                  <span class="th-tools" class:on={sort?.col === c.name || hmenu?.j === j || secret[j]}>
                   {#if secret[j]}
                     <button
                       class="th-eye"
@@ -867,6 +911,7 @@
                   <button class="th-menu" aria-haspopup="menu" aria-expanded={hmenu?.j === j} aria-label={t('grid.columnMenu', { column: c.name })} title={t('grid.columnMenu', { column: c.name })} onclick={(e) => openHeaderMenu(e, j)}>
                     <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><circle cx="12.5" cy="8" r="1.3" fill="currentColor" /></svg>
                   </button>
+                  </span>
                 </div>
                 <!-- Focusable separator = ARIA "window splitter" pattern, keyboard resizable. -->
                 <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
@@ -920,7 +965,8 @@
                 oncontextmenu={(e) => openMenu(e, i, -1)}
                 onkeydown={onGridKey}
               >
-                <span class="rn">{n(rowOffset + i + 1)}</span>
+                {#if !hasPk}<span class="rn">{n(rowOffset + i + 1)}</span>{/if}
+                <span class="box" aria-hidden="true"></span>
                 <button
                   class="open"
                   tabindex="-1"
@@ -1001,7 +1047,7 @@
                         onclick={() => revealCell(i, j)}
                         aria-label={t('grid.revealValue')}
                         title={t('grid.revealValue')}
-                      ><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z" fill="none" stroke="currentColor" stroke-width="1.3" /><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.3" /></svg></button></span>{:else if follow || cv.label || cv.broken}<span class="cl"><span class="ct">{#if cv.label}<span class="lbl">{cv.label}</span>{#if cv.id}<span class="lid">{' · '}{cv.id}</span>{/if}{:else if cv.broken}<span class="broken"><span aria-hidden="true">⚠ </span>{cv.broken}</span>{:else}{cv.text}{/if}</span>{#if follow}<button
+                      ><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z" fill="none" stroke="currentColor" stroke-width="1.3" /><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.3" /></svg></button></span>{:else if follow || cv.label || cv.broken}<span class="cl"><span class="ct">{#if cv.label}<span class="chip" data-i={cv.label.trim().charAt(0).toUpperCase()}><span class="lbl">{cv.label}</span>{#if cv.id}<span class="lid"><span class="sep">{' · '}</span>{cv.id}</span>{/if}</span>{:else if cv.broken}<span class="broken"><span aria-hidden="true">⚠ </span>{cv.broken}</span>{:else}{cv.text}{/if}</span>{#if follow}<button
                         class="fk"
                         class:inferred={links[j]!.kind === 'inferred'}
                         tabindex="-1"
@@ -1024,6 +1070,8 @@
 
     {#if st && rows.length}
       <div class="status" role="status" aria-live="polite">
+        <span class="pos">{t('status.rowOf', { row: n(Math.max(0, active.r) + 1), total: (totalApprox ? '~' : '') + n(totalRows) })}</span>
+        {#if loadingMore}<span class="k">{t('status.loadingMore')}</span>{/if}
         <span>{t('status.cells', { count: n(st.count) })}</span>
         {#if st.numeric > 0 && st.count > 1}
           <span><span class="k">{t('status.sum')}</span> {fmt(st.sum)}</span>
@@ -1096,12 +1144,16 @@
     min-height: 0;
     overflow: auto;
   }
+  /* Two looks (the density toggle):
+     compact     = dense and exact (TablePlus): 26 px rows, every border, soft zebra (Settings › Data);
+     comfortable = calm (Supabase / Linear): 40 px rows, no vertical borders, faint row lines, more air.
+     Both: type icon before the name, keys right after it, relations as chips. */
   .dg {
     table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
     font-family: var(--sp-font);
-    font-size: 13px;
+    font-size: 12.5px;
     font-variant-ligatures: none;
     user-select: none;
   }
@@ -1118,18 +1170,28 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background: var(--sp-bg);
+    background: var(--row-bg, var(--sp-bg));
   }
   .comfortable th,
   .comfortable td {
-    padding: 0 12px;
+    padding: 0 14px;
+    border-right-color: transparent;
+    border-bottom-color: color-mix(in srgb, var(--sp-border) 60%, transparent);
   }
+  .comfortable .dg thead th {
+    --th-bg: var(--sp-bg);
+    background: var(--th-bg);
+    border-bottom-color: var(--sp-border);
+    font-weight: 500;
+  }
+
   .dg thead th {
+    --th-bg: var(--sp-bg-subtle);
     position: sticky;
     top: 0;
     z-index: 2;
     height: var(--th-h);
-    background: var(--sp-bg-subtle);
+    background: var(--th-bg);
     font-size: 12px;
     font-weight: 600;
     color: var(--sp-text-secondary);
@@ -1162,7 +1224,7 @@
     vertical-align: middle;
   }
   .dg tbody tr:hover > * {
-    background: color-mix(in srgb, var(--sp-bg-muted) 55%, var(--sp-bg));
+    background: var(--sp-bg-muted);
   }
   /* The row of the active cell (and fully selected rows): accent edge on the row header. */
   .dg tbody tr.active-row > th.rh,
@@ -1176,6 +1238,7 @@
   }
   .dg thead th.col-sel,
   .dg tbody th.row-sel {
+    --th-bg: var(--sel-head);
     background: var(--sel-head);
     color: var(--sp-text-primary);
   }
@@ -1188,7 +1251,8 @@
     font-family: var(--sp-font-mono);
     font-size: 12.5px;
   }
-  .num {
+  .num,
+  .dg td.num {
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
@@ -1233,6 +1297,52 @@
     font-family: var(--sp-font-mono);
     font-size: 0.92em;
     color: var(--sp-text-tertiary);
+  }
+  /* Relation as a chip: initial, name, id (the " · " stays in the text for copy and screen readers). */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    height: 20px;
+    padding: 0 7px 0 3px;
+    border: 1px solid var(--sp-border);
+    border-radius: 999px;
+    background: var(--sp-bg-subtle);
+    vertical-align: middle;
+    line-height: 1;
+  }
+  .chip::before {
+    content: attr(data-i);
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--sp-text-primary) 12%, var(--sp-bg));
+    color: var(--sp-text-secondary);
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .chip .lbl {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chip .lid {
+    flex: none;
+  }
+  .chip .sep {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .comfortable .chip {
+    height: 22px;
   }
   /* Sensitive values: dots + eye (cell) and an eye in the header (whole column). */
   .mask {
@@ -1302,27 +1412,57 @@
     font-size: 12px;
   }
   .rh {
-    text-align: right;
+    text-align: left;
     color: var(--sp-text-tertiary);
     font-weight: 400;
-    font-size: 11.5px;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
     cursor: default;
   }
-  tbody .rh {
-    padding: 0 4px 0 2px;
+  .dg .rh,
+  .comfortable .dg .rh {
+    padding: 0 0 0 7px;
+  }
+  /* Gutter: an empty box on hover (click = select the row), filled when selected;
+     results without a primary key show the row number on hover instead. */
+  .box {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    vertical-align: middle;
+    border: 1.5px solid var(--sp-border-hover);
+    border-radius: 3px;
+    background: var(--sp-bg);
+    visibility: hidden;
+  }
+  tr:hover > .rh .box,
+  .rh:focus .box,
+  .corner .box,
+  tr.sel-row > .rh .box {
+    visibility: visible;
+  }
+  tr.sel-row > .rh .box {
+    border-color: var(--sp-inverse);
+    background: var(--sp-inverse);
+    box-shadow: inset 0 0 0 2px var(--sp-bg);
   }
   .rn {
-    display: inline-block;
-    min-width: 24px;
+    display: none;
+    min-width: 12px;
     vertical-align: middle;
+  }
+  tr:hover > .rh .rn {
+    display: inline-block;
+  }
+  tr:hover > .rh .rn + .box {
+    display: none;
   }
   .open {
     display: inline-grid;
     place-items: center;
-    width: 18px;
+    width: 16px;
     height: 18px;
-    margin-left: 2px;
+    margin-left: 1px;
     vertical-align: middle;
     border: 0;
     border-radius: 3px;
@@ -1354,9 +1494,40 @@
     gap: 4px;
     min-width: 0;
   }
+  .ticon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: var(--sp-text-tertiary);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Sort and ⋯: over the end of the header on hover / focus (and the sort arrow while sorted). */
+  .th-in {
+    position: relative;
+  }
+  .th-tools {
+    position: absolute;
+    top: 50%;
+    right: -4px;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding-left: 14px;
+    transform: translateY(-50%);
+    background: linear-gradient(to right, transparent, var(--th-bg) 12px);
+    opacity: 0;
+  }
+  th:hover .th-tools,
+  .th-tools:focus-within,
+  .th-tools.on {
+    opacity: 1;
+  }
   .th-btn {
     all: unset;
-    flex: 1;
+    flex: 0 1 auto;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -1616,6 +1787,9 @@
   }
   .status .k {
     color: var(--sp-text-secondary);
+  }
+  .status .pos {
+    font-weight: 600;
   }
   .status > * {
     flex-shrink: 0;

@@ -68,11 +68,12 @@ web/                    Svelte 5 + Vite + TypeScript UI
   src/lib/sqlText.ts    offset-preserving masking, statement splitting
   src/lib/errors.ts     friendly errors, "did you mean" (Levenshtein)
   src/lib/keyIcons.ts   key icons per column (PK, U, I, FT, SP + position in composite keys, declared FK, inferred relation) for the grid header and Structure; components/KeyIcon.svelte draws them (shape + letter + color + tooltip)
-  src/lib/fkLabels.ts   names for FK cells: distinct ids per page, one lookup_many, "Name · id" / broken reference
-  src/lib/grid.ts       column kinds, auto widths, compact dates + full tooltip (zone), special cells (NULL / empty / binary), Yes/No, JSON summary, CSV (formula-like text neutralized for spreadsheets), virtual range (pure, tested)
+  src/lib/fkLabels.ts   names for FK cells: distinct ids per loaded block, one lookup_many per block (merged), "Name · id" chip / broken reference
+  src/lib/grid.ts       column kinds, type icon per column, auto widths (360 px cap), exact dates in the cell + relative and full date in the tooltip (zone), special cells (NULL / empty / binary), Yes/No, JSON summary, CSV (formula-like text neutralized for spreadsheets), virtual range (pure, tested)
+  src/lib/recentTables.ts, tableOrder.ts  recent tables per connection + db (Ctrl+P; forgotten with the connection), sidebar order shared with Alt+Up/Down (previous / next table)
   src/lib/sensitive.ts  sensitive columns: name patterns (Settings → Data) + bcrypt/argon values; masked in grid and detail until revealed, copy warns
   src/lib/fuzzy.ts      fuzzy table filter, common prefix detection, prefix groups (sidebar: "sap_" 17, "cfg_" 10)
-  src/lib/prefs.svelte.ts  localStorage prefs: density, sidebar width, pinned tables, table sort
+  src/lib/prefs.svelte.ts  localStorage prefs: density (compact = dense, every border, zebra; comfortable = 40 px rows, no vertical borders), sidebar width, folded sidebar (Ctrl+B), pinned tables, table sort
   src/lib/theme.ts      themes: data-theme/data-mode/data-density/data-radius on <html>, accent + text size, contrast math, config.php 'ui' defaults; index.html has the pre-paint copy
   src/styles/themes/    one CSS file per theme (spider-ui token names, light + dark); AA checked by lib/theme.test.ts
   src/lib/tabs.svelte.ts   SQL tabs store (list, active id, undo, persistence per user@host)
@@ -90,7 +91,7 @@ web/                    Svelte 5 + Vite + TypeScript UI
   src/components/settings/  SettingsDialog (gear / Ctrl+,), ThemeCards, AccentPicker, LivePreview, ConnectionsSection
   src/lib/connections.ts  recent logins (max 4, no passwords), color/env per server (config.php wins on env), suggested env by host
   src/components/login/ ServerPicker (grouped listbox in the auth look); Login.svelte uses spider-ui auth-* under data-mode-scope="light"
-  src/components/       Login, Sidebar (spider-ui app frame menu from shell.css, the SpiderFolio look: full height, database row on top (switches databases), search + create (+) + database menu (⋯), "Tables" line with the row metric and list options, prefix folds, no empty groups, connection row at the bottom; current row in the theme accent, never violet outside the Spider theme), DataGrid (shared by TableView and SqlView), RowDetail, StructureView, SqlEditor, AiPanel…
+  src/components/       Login, Sidebar (spider-ui app frame menu from shell.css, the SpiderFolio look: full height, database row on top (switches databases), search + create (+) + database menu (⋯), "Tables" line with the row metric and list options, prefix folds, no empty groups, connection row at the bottom; current row in the theme accent, never violet outside the Spider theme; Ctrl+B folds it to icons), TablePalette (Ctrl+P: recent first, fuzzy, Ctrl+Enter = SQL tab), DataGrid (shared by TableView and SqlView: type icon before the name and keys right after it, sort / ⋯ over the header on hover, relations as chips, ✓ / — with double-click edit, no # column when there is a PK (box on hover), continuous scroll in blocks with "Row N of M"), RowDetail, StructureView, SqlEditor, AiPanel…
   src/locales/*.json    en, es, it, fr
 docker/                 Dockerfile, sample.sql (shop database + read-only demo user), demo.sql (same data for shared hosting: no CREATE DATABASE/USE/USER/GRANT; tests/php/DemoTest.php keeps it in sync)
 site/                   public website (phpmyflow.spiderjad.com), NOT part of the release: static Astro, en at / and es at /es/ (it/fr prepared in src/i18n/locales.ts)
@@ -189,7 +190,7 @@ Panel look from the spider-ui system (Vercel-like, monochrome); since spider-ui 
 2. ~~Export and import~~ (done, DB tools phase A: SQL/CSV/JSON/XLSX export in parts, SQL import in chunks). Still open: CSV import.
 3. ~~Alter table UI~~ (done: Structure tab editor with review drawer) and ~~new table~~ (done: from scratch or templates).
 4. Command palette (Ctrl+K): jump to table, run action, switch database.
-5. ~~Virtualized grid and keyboard navigation~~ (done: DataGrid virtualizes from 500 rows, fixed row height, no extra dependency).
+5. ~~Virtualized grid and keyboard navigation~~ (done: DataGrid virtualizes from 500 rows, fixed row height, no extra dependency; the data view loads blocks while scrolling instead of pages; Ctrl+P go to table, Alt+Up/Down previous / next table, Ctrl+B fold the sidebar).
 6. ~~Editor tabs~~ (done: `lib/tabs.svelte.ts` + `SqlTabs.svelte`, one EditorView with an EditorState per tab, saved per user@host) and ~~dated history~~ (done: `lib/history.ts`). Still open: named saved queries.
 7. Two-factor login (TOTP) as an option.
 8. ~~GitHub Actions~~ (done: `ci.yml` = PHP 8.1 + 8.3 tests, web check/build/parity, e2e on MariaDB, site build; `release.yml` = push a `v*` tag matching PMF_VERSION → clean build, zip checked (no config.php / data/), GitHub release with `.github/release-notes.md`, always marked latest: the website's Download uses releases/latest).

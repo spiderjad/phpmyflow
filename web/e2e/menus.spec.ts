@@ -50,11 +50,10 @@ test('table menu: Empty and Drop are last and in red', async ({ page }) => {
   await expect(items.last()).toHaveClass(/danger/);
 });
 
-test('rows per page and language use the spider-ui select (no native <select>)', async ({ page }) => {
-  await expect(page.locator('.pager select, header select')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Rows per page' }).click();
-  await page.getByRole('listbox').getByRole('option', { name: '25', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Rows per page' })).toContainText('25');
+test('no pager (rows arrive while scrolling, "Row N of M"); the language uses the spider-ui select (no native <select>)', async ({ page }) => {
+  await expect(page.locator('select')).toHaveCount(0);
+  await expect(page.locator('.pager')).toHaveCount(0);
+  await expect(page.locator('.status .pos')).toHaveText(/^Row 1 of \d/);
   await page.getByRole('button', { name: 'Language' }).click();
   await page.getByRole('listbox').getByRole('option', { name: 'Español' }).click();
   await expect(page.getByRole('button', { name: 'Idioma' })).toContainText('Español');

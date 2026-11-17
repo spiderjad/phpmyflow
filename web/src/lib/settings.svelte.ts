@@ -29,7 +29,7 @@ export function defaults(appearance: Appearance = mirroredAppearance()): Setting
   return {
     appearance: { ...appearance },
     editor: { fontSize: 13, syntax: 'theme', upperKeywords: true, lint: true, wrap: true },
-    data: { perPage: 100, relations: 'both', zebra: false, dates: 'locale', hideSensitive: true, sensitive: [...DEFAULT_SENSITIVE] },
+    data: { perPage: 100, relations: 'both', zebra: true, dates: 'locale', hideSensitive: true, sensitive: [...DEFAULT_SENSITIVE] },
     general: { confirmWhere: false, startTab: 'overview' },
   };
 }
@@ -55,7 +55,9 @@ export function normalizeSettings(raw: unknown, base: Settings): Settings {
     data: {
       perPage: pick(Number(d.perPage), PER_PAGE, base.data.perPage),
       relations: pick(d.relations, RELATIONS, base.data.relations),
-      zebra: bool(d.zebra, base.data.zebra),
+      // The default became "on" with the compact grid look (striped rows). A value saved before
+      // (no zebraSince) is almost always the old default "off": it moves to the new default once.
+      zebra: d.zebraSince === 2 ? bool(d.zebra, base.data.zebra) : base.data.zebra,
       dates: pick(d.dates, DATES, base.data.dates),
       hideSensitive: bool(d.hideSensitive, base.data.hideSensitive),
       sensitive: Array.isArray(d.sensitive)
@@ -77,10 +79,15 @@ export const settingsMeta = $state({ key: '', locked: false, lockedAppearance: n
 
 export const settingsKey = (a: { user: string; host: string; port: number } | null | undefined) => (a ? `pmf.settings.${a.user}@${a.host}:${a.port}` : '');
 
+/** What is stored / exported: the settings plus format marks (see normalizeSettings). */
+function withMarks(s: Settings) {
+  return { ...s, data: { ...s.data, zebraSince: 2 } };
+}
+
 function save() {
   if (!settingsMeta.key) return;
   try {
-    localStorage.setItem(settingsMeta.key, JSON.stringify($state.snapshot(settings)));
+    localStorage.setItem(settingsMeta.key, JSON.stringify(withMarks($state.snapshot(settings) as Settings)));
   } catch {
     /* storage blocked: applied for this page only */
   }
@@ -144,7 +151,7 @@ export interface ExportFile {
 }
 
 export function exportSettings(s: Settings = $state.snapshot(settings) as Settings, connections = readConnectionPrefs(), language: Locale = i18n.locale): string {
-  const file: ExportFile = { app: 'phpMyFlow', kind: 'settings', version: 1, language, settings: s, connections };
+  const file: ExportFile = { app: 'phpMyFlow', kind: 'settings', version: 1, language, settings: withMarks(s), connections };
   return JSON.stringify(file, null, 2);
 }
 

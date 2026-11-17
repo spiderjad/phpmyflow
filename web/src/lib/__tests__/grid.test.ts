@@ -68,7 +68,7 @@ describe('autoWidths', () => {
       fmt,
     );
     expect(short).toBeGreaterThanOrEqual(56);
-    expect(long).toBe(420);
+    expect(long).toBe(360);
   });
 
   it('only looks at the first sample rows', () => {

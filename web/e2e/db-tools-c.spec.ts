@@ -50,7 +50,7 @@ test('generate 500 rows in a table with a foreign key', async ({ page }) => {
 });
 
 test('OPTIMIZE two tables shows a result per table', async ({ page }) => {
-  await page.locator('.db-head .more').click();
+  await page.getByTestId('db-menu').click();
   await page.locator('[data-id="maintenance"]').click();
   const dlg = page.getByRole('dialog', { name: 'Maintenance in shop' });
   await dlg.getByRole('radio', { name: 'OPTIMIZE' }).click();

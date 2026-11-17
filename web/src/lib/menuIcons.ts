@@ -42,6 +42,20 @@ export const MENU_ICONS: Record<string, string> = {
   more: 'M3.5 8h.01M8 8h.01M12.5 8h.01',
   chevDown: 'M4 6l4 4 4-4',
   chevUpDown: 'M5 6l3-3 3 3M5 10l3 3 3-3',
+  chevUp: 'M4 10l4-4 4 4',
+  chevLeft: 'M10 4 6 8l4 4',
+  chevRight: 'M6 4l4 4-4 4',
+  // Grid header: what a column holds (lib/grid.ts typeIcon).
+  tNum: 'M6 2.5 4.5 13.5M11.5 2.5 10 13.5M3 6h10.5M2.5 10h10.5',
+  tText: 'M3.5 4.5v-1h9v1M8 3.5v9M6 12.5h4',
+  tLong: 'M2.5 4h11M2.5 7h11M2.5 10h11M2.5 13h6',
+  tDate: 'M3 4h10v9.5H3zM3 7h10M5.5 2.5v3M10.5 2.5v3',
+  tTime: 'M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 5v3l2 1.5',
+  tBool: 'M5.5 4.5h5a3.5 3.5 0 0 1 0 7h-5a3.5 3.5 0 0 1 0-7zM10.5 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
+  tBin: 'M4 2.5h5l3 3v8H4zM9 2.5v3h3',
+  tJson: 'M6 2.5c-1.5 0-2 .7-2 2v1.5c0 1-.5 1.5-1.5 2 1 .5 1.5 1 1.5 2v1.5c0 1.3.5 2 2 2M10 2.5c1.5 0 2 .7 2 2v1.5c0 1 .5 1.5 1.5 2-1 .5-1.5 1-1.5 2v1.5c0 1.3-.5 2-2 2',
+  tEnum: 'M6 4.5h7.5M6 8h7.5M6 11.5h7.5M3 4.5h.01M3 8h.01M3 11.5h.01',
+  tLink: 'M7 9a2.5 2.5 0 0 0 3.5 0l2-2a2.5 2.5 0 0 0-3.5-3.5l-.6.6M9 7a2.5 2.5 0 0 0-3.5 0l-2 2A2.5 2.5 0 0 0 7 12.5l.6-.6',
   logout: 'M6.5 13.5h-3v-11h3M10 5l3 3-3 3M13 8H6',
 };
 

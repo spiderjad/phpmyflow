@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Select from './ui/Select.svelte';
   import { tick, untrack } from 'svelte';
   import { api, ApiError, editorApi, type Cell, type RowsResult } from '../lib/api';
   import { friendlyError } from '../lib/errors';
@@ -28,9 +27,11 @@
   let counting = $state(false);
   let loading = $state(false);
   let error = $state('');
+  // Continuous scroll: rows arrive in blocks (Settings › Data "rows per page" = block size).
   let page = $state(1);
-  // Default from Settings › Data and grid; the footer select changes it for this table only.
-  let perPage = $state<number>(settings.data.perPage);
+  let hasMore = $state(false);
+  let loadingMore = $state(false);
+  const perPage = $derived<number>(settings.data.perPage);
   let sort = $state<{ col: string; dir: 'ASC' | 'DESC' } | null>(null);
   let filters = $state<Record<string, string>>({});
   let filtersOpen = $state(false);
@@ -48,7 +49,6 @@
   }
   const editable = $derived(!!meta && meta.primaryKey.length > 0 && !readOnly);
   const shownTotal = $derived(total ?? meta?.estimate ?? 0);
-  const pages = $derived(meta ? Math.max(1, Math.ceil(shownTotal / meta.perPage)) : 1);
   const activeFilters = $derived(Object.fromEntries(Object.entries(filters).filter(([, v]) => v.trim() !== '')));
   const filterCount = $derived(Object.keys(activeFilters).length);
   const linkMap = $derived(linksOf(app.relations, table));
@@ -80,19 +80,33 @@
     app.view = 'structure';
   }
 
-  // Names for related columns: ONE lookup_many per loaded page (ids shown meanwhile).
+  // Names for related columns: ONE lookup_many per loaded block (ids shown meanwhile),
+  // merged into the names already known. A new id waits as an id, never as "broken".
   let labels = $state<(ColumnLabels | undefined)[]>([]);
-  let labelSeq = 0;
-  async function loadLabels() {
-    const mine = ++labelSeq;
+  let labelPending = 0;
+  async function loadLabels(id: number, from = 0, to = rows.length) {
     const ls = links;
-    labels = [];
-    const refs = collectRefs(rows, ls);
+    if (from === 0 && to === rows.length) {
+      labels = [];
+      labelPending = 0;
+    }
+    const refs = collectRefs(rows.slice(from, to), ls);
     if (!refs.length) return;
+    labelPending++;
+    labels = labels.map((l) => (l ? { done: false, map: l.map } : l));
     try {
       const r = await lookupMany(db, refs);
-      if (mine === labelSeq) labels = applyLabels(ls, r.labels);
+      if (id !== requestId) return;
+      const got = applyLabels(ls, r.labels);
+      labelPending--;
+      const done = labelPending === 0;
+      labels = ls.map((_, c) => {
+        const a = labels[c];
+        const b = got[c];
+        return a || b ? { done, map: { ...(a?.map ?? {}), ...(b?.map ?? {}) } } : undefined;
+      });
     } catch {
+      labelPending--;
       /* the ids stay visible */
     }
   }
@@ -120,17 +134,21 @@
   }
 
   let requestId = 0;
+  /** The first block (sort, filters, refresh, another table): replaces the rows. */
   async function load() {
     const id = ++requestId;
     loading = true;
+    loadingMore = false;
     error = '';
+    page = 1;
     try {
-      const res = await api.rows({ db, table, page, perPage, sort: sort?.col, dir: sort?.dir ?? 'ASC', filters: activeFilters });
+      const res = await api.rows({ db, table, page: 1, perPage, sort: sort?.col, dir: sort?.dir ?? 'ASC', filters: activeFilters });
       if (id !== requestId) return;
       const { rows: data, ...rest } = res;
       meta = rest;
       rows = data.map((r) => rest.columns.map((c) => r[c.name]));
-      void loadLabels();
+      hasMore = data.length === perPage && (res.total === null || data.length < res.total);
+      void loadLabels(id);
       selected = new Set();
       if (res.total !== null) {
         total = res.total;
@@ -143,6 +161,31 @@
       if (id === requestId) error = err instanceof ApiError ? friendlyError(err, app.schema).title : String(err);
     } finally {
       if (id === requestId) loading = false;
+    }
+  }
+
+  /** The next block, appended (the grid asks near the end of the scroll). */
+  async function loadMore() {
+    if (loading || loadingMore || !hasMore || !meta) return;
+    const id = requestId;
+    const next = page + 1;
+    loadingMore = true;
+    try {
+      const res = await api.rows({ db, table, page: next, perPage, sort: sort?.col, dir: sort?.dir ?? 'ASC', filters: activeFilters });
+      if (id !== requestId) return;
+      const block = res.rows.map((r) => res.columns.map((c) => r[c.name]));
+      const from = rows.length;
+      rows = [...rows, ...block];
+      page = next;
+      hasMore = block.length === perPage && (total === null || rows.length < total);
+      void loadLabels(id, from);
+    } catch (err) {
+      if (id === requestId) {
+        hasMore = false;
+        toast(err instanceof ApiError ? friendlyError(err, app.schema).title : String(err), 'error', 6000);
+      }
+    } finally {
+      if (id === requestId) loadingMore = false;
     }
   }
 
@@ -213,7 +256,7 @@
     try {
       await api.updateCell({ db, table, column: columns[c].name, key: keyOf(rows[r]), value });
       rows[r][c] = value;
-      if (links[c]) void loadLabels(); // the new id needs its name
+      if (links[c]) void loadLabels(requestId, r, r + 1); // the new id needs its name
       toast(t('grid.saved'), 'success', 1800);
       return true;
     } catch (err) {
@@ -249,10 +292,6 @@
     }
   }
 
-  function go(p: number) {
-    page = p;
-    load();
-  }
 
   // Bar actions that don't fit move into "⋯", in this order (the first one folds first).
   // Measured, not fixed breakpoints: labels differ per language.
@@ -393,7 +432,11 @@
         loadRelated={pkIndex === -1 ? undefined : loadRelated}
         onopenrelated={openRelated}
         ondeleterows={editable ? (r) => deleteSelected(r) : undefined}
-        rowOffset={(page - 1) * meta.perPage}
+        total={total ?? meta.estimate ?? null}
+        totalApprox={total === null || totalApprox}
+        more={hasMore}
+        onmore={loadMore}
+        {loadingMore}
         {sort}
         onsort={toggleSort}
         onsortdir={(col, dir) => (sort = { col, dir })}
@@ -416,28 +459,6 @@
     {/if}
   </div>
 
-  {#if meta && shownTotal > 0}
-    <footer class="pager">
-      <span class="per-page">
-        <span id="per-page-lbl" class="per-page-lbl">{t('grid.perPage')}</span>
-        <Select
-          compact
-          value={String(perPage)}
-          label={t('grid.perPage')}
-          options={[25, 50, 100, 250, 500].map((x) => ({ value: String(x), label: String(x) }))}
-          onchange={(v) => {
-            perPage = Number(v);
-            go(1);
-          }}
-        />
-      </span>
-      <div class="nav">
-        <button class="v-btn-ghost v-btn--sm" disabled={page <= 1 || loading} onclick={() => go(page - 1)}>{t('grid.prev')}</button>
-        <span class="page-of">{t('grid.page', { page: n(page), pages: (total === null ? '~' : '') + n(pages) })}</span>
-        <button class="v-btn-ghost v-btn--sm" disabled={(total !== null && page >= pages) || rows.length < perPage || loading} onclick={() => go(page + 1)}>{t('grid.next')}</button>
-      </div>
-    </footer>
-  {/if}
 </section>
 
 {#if inserting && meta}
@@ -516,35 +537,5 @@
     color: var(--sp-text-tertiary);
     text-align: center;
     flex: 1;
-  }
-  .pager {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    padding: 4px 16px;
-    border-top: 1px solid var(--sp-border);
-    font-size: 12px;
-    color: var(--sp-text-secondary);
-  }
-  .nav {
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-  }
-  .per-page {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    white-space: nowrap;
-  }
-  .per-page-lbl {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 </style>

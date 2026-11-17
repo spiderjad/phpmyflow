@@ -2,8 +2,12 @@
   import { onMount, untrack } from 'svelte';
   import { api, ApiError, onSessionLost, setCsrf } from './lib/api';
   import { t } from './lib/i18n.svelte';
-  import { app, loadDatabases, rememberView, type View } from './lib/state.svelte';
-  import { prefs, savePrefs, setSidebarWidth, SIDEBAR_MAX, SIDEBAR_MIN } from './lib/prefs.svelte';
+  import { app, loadDatabases, rememberView, selectTable, type View } from './lib/state.svelte';
+  import { prefs, savePrefs, setSidebarWidth, SIDEBAR_MAX, SIDEBAR_MIN, toggleSidebar } from './lib/prefs.svelte';
+  import { recentKey, rememberTable } from './lib/recentTables';
+  import { displayOrder, stepTable } from './lib/tableOrder';
+  import { MENU_ICONS } from './lib/menuIcons';
+  import TablePalette from './components/TablePalette.svelte';
   import { tabs, tabsKey } from './lib/tabs.svelte';
   import { historyKey } from './lib/history';
   import { confirmAction, dismissToast, registerConfirm, toast, toasts } from './lib/ui.svelte';
@@ -37,6 +41,7 @@
   let fatal = $state('');
   let confirmDialog: ConfirmDialog | undefined = $state();
   let settingsDialog: SettingsDialog | undefined = $state();
+  let palette: TablePalette | undefined = $state();
   let logoutDialog: LogoutDialog | undefined = $state();
 
   /** From the logout modal: optionally forget the connection, cancel running exports, then sign out. */
@@ -49,6 +54,7 @@
       try {
         localStorage.removeItem(historyKey(a));
         localStorage.removeItem(tabsKey(a));
+        localStorage.removeItem(recentKey(a));
       } catch {
         /* blocked storage */
       }
@@ -171,6 +177,20 @@
 
   $effect(() => rememberView(app.view));
 
+  // Recent tables (Ctrl+P lists them first), per connection and database.
+  $effect(() => {
+    const [tb, db, a] = [app.table, app.db, app.session?.auth];
+    if (tb && db && a) untrack(() => rememberTable(recentKey(a), db, tb));
+  });
+
+  /** Alt+Up / Alt+Down and the arrows by the table name: the table before / after, in sidebar order. */
+  function stepTo(dir: 1 | -1) {
+    const next = stepTable(displayOrder(app.tables, prefs.tableSort, prefs.groupPrefix), app.table, dir);
+    if (next && next !== app.table) selectTable(next);
+  }
+  /** Typing somewhere: Alt+arrows belong to the field (CodeMirror moves lines with them). */
+  const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.isContentEditable || !!el.closest('input, textarea, select, .cm-editor, dialog'));
+
   // Privileges (SHOW GRANTS) for the database actions.
   $effect(() => {
     const db = app.db;
@@ -214,7 +234,7 @@
     <!-- Always with the text label in the top bar (never color alone). -->
     <div class="conn-stripe" aria-hidden="true" style:--env-l={PALETTE[look.color ?? 'blue'].light} style:--env-d={PALETTE[look.color ?? 'blue'].dark}></div>
   {/if}
-  <div class="shell" class:menu-open={menuOpen} style:--side-w="{prefs.sidebarWidth}px">
+  <div class="shell" class:menu-open={menuOpen} class:collapsed={prefs.sidebarCollapsed} class:v-shell--contraido={prefs.sidebarCollapsed} style:--side-w="{prefs.sidebarWidth}px">
     <header class="top">
       <button class="v-btn-ghost v-btn--sm burger" onclick={() => (menuOpen = !menuOpen)} aria-label={t('sidebar.tables')}>☰</button>
       <div class="crumbs">
@@ -229,6 +249,14 @@
           <span class="sep">/</span><span class="mono">{app.object.name ?? t('objects.newShort')}</span>
         {:else if app.table && app.view !== 'sql' && app.view !== 'overview'}
           <span class="sep">/</span><span class="mono">{app.table}</span>
+          <span class="updown">
+            <button aria-label={t('nav.prevTable')} title="{t('nav.prevTable')} (Alt+↑)" aria-keyshortcuts="Alt+ArrowUp" onclick={() => stepTo(-1)}>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d={MENU_ICONS.chevUp} /></svg>
+            </button>
+            <button aria-label={t('nav.nextTable')} title="{t('nav.nextTable')} (Alt+↓)" aria-keyshortcuts="Alt+ArrowDown" onclick={() => stepTo(1)}>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d={MENU_ICONS.chevDown} /></svg>
+            </button>
+          </span>
         {/if}
       </div>
       <nav class="tabs" aria-label={t('nav.views')}>
@@ -258,7 +286,18 @@
     </header>
 
     <div class="side-wrap" onclick={(e) => { if ((e.target as HTMLElement).closest('[data-table], [data-object]')) menuOpen = false; }} role="presentation">
-      <Sidebar onsettings={() => settingsDialog?.open()} onlogout={() => logoutDialog?.open()} />
+      <Sidebar onsettings={() => settingsDialog?.open()} onlogout={() => logoutDialog?.open()} onpalette={() => palette?.open()} />
+      <!-- spider-ui edge arrow: fold the panel to icons (Ctrl+B); large screens only. -->
+      <button
+        class="v-sidebar__edge"
+        aria-label={prefs.sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        title="{prefs.sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')} (Ctrl+B)"
+        aria-keyshortcuts="Control+B"
+        aria-expanded={!prefs.sidebarCollapsed}
+        onclick={toggleSidebar}
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d={prefs.sidebarCollapsed ? MENU_ICONS.chevRight : MENU_ICONS.chevLeft} fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
       <!-- Focusable separator = ARIA "window splitter" pattern, keyboard resizable. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
       <div
@@ -312,10 +351,25 @@
       e.preventDefault();
       app.view = 'search';
     }
+    if (!app.session?.auth) return;
+    const mod = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
+    // Ctrl+P: go to a table (instead of printing). Ctrl+B: fold the panel.
+    if (mod && e.key.toLowerCase() === 'p' && app.db) {
+      e.preventDefault();
+      palette?.open();
+    } else if (mod && e.key.toLowerCase() === 'b' && !typing(e.target)) {
+      e.preventDefault();
+      toggleSidebar();
+    } else if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && app.db && !typing(e.target) && !e.defaultPrevented) {
+      // Lists that reorder with Alt+arrows (Structure columns, index columns) handle it first.
+      e.preventDefault();
+      stepTo(e.key === 'ArrowUp' ? -1 : 1);
+    }
   }}
 />
 
 <ConfirmDialog bind:this={confirmDialog} />
+{#if app.session?.auth}<TablePalette bind:this={palette} />{/if}
 {#if app.session?.auth}
   <SettingsDialog bind:this={settingsDialog} />
   <LogoutDialog bind:this={logoutDialog} env={look?.env ?? null} color={look?.color ?? null} onconfirm={(f) => void confirmLogout(f)} />
@@ -430,6 +484,51 @@
     align-items: center;
     gap: 10px;
   }
+  /* Ctrl+B: the panel folded to icons (spider-ui v-shell--contraido); large screens only. */
+  @media (min-width: 1024px) {
+    .shell.collapsed {
+      grid-template-columns: var(--sp-menu-collapsed-width, 72px) minmax(0, 1fr);
+    }
+    .shell.collapsed .side-resize {
+      display: none;
+    }
+  }
+  .side-wrap :global(.v-sidebar__edge) {
+    top: 14px;
+  }
+  .updown {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: -2px;
+  }
+  .updown button {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 13px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    color: var(--sp-text-secondary);
+    cursor: pointer;
+  }
+  .updown button:hover {
+    background: var(--sp-bg-muted);
+    color: var(--sp-text-primary);
+  }
+  .updown button:focus-visible {
+    outline: 2px solid var(--sp-focus);
+  }
+  .updown svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
   .side-wrap {
     grid-column: 1;
     grid-row: 1 / -1;
@@ -543,7 +642,8 @@
       display: inline-flex;
     }
     .crumbs .sep,
-    .crumbs .mono {
+    .crumbs .mono,
+    .crumbs .updown {
       display: none;
     }
     .side-wrap {

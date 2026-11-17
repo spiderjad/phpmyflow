@@ -46,9 +46,10 @@
   --syn-ident: #e5e7eb;
 }
 
-/* Zebra rows in the data grid (DataGrid marks every other row with .odd). */
-:root[data-zebra='on'] table.dg tr.odd > td {
-  background-color: color-mix(in srgb, var(--sp-bg-muted) 55%, var(--sp-bg));
+/* Zebra rows in the data grid, compact look only (DataGrid marks every other row with .odd).
+   A variable the cells read, so the row hover and the selection still paint over it. */
+:root[data-zebra='on'] .dg-scroll.compact table.dg tr.odd {
+  --row-bg: color-mix(in srgb, var(--sp-bg-muted) 50%, var(--sp-bg));
 }
 
 /* Comfortable density: more air in the sidebar (spider-ui --sp-row-dense, also set by

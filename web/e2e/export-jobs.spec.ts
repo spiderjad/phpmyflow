@@ -60,7 +60,7 @@ async function exportBig(page: Page) {
   await login(page);
   await pickDb(page, 'pmf_big');
   await expect(page.locator('nav.tables button[data-table="wp_posts"]')).toBeVisible();
-  await page.locator('.db-head .more').click();
+  await page.getByTestId('db-menu').click();
   await page.locator('[data-id="export"]').click();
   await page.getByRole('dialog', { name: 'Export from pmf_big' }).getByRole('button', { name: 'Export', exact: true }).click();
   const panel = page.getByRole('article', { name: 'Export pmf_big' });

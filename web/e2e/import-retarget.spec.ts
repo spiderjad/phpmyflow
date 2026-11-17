@@ -50,7 +50,7 @@ test.beforeEach(async ({ page }) => {
 test.afterEach(async ({ page }) => dropAll(page));
 
 async function openImport(page: Page) {
-  await page.locator('.db-head .more').click();
+  await page.getByTestId('db-menu').click();
   await page.locator('[data-id="import"]').click();
   return page.getByRole('dialog', { name: 'Import SQL' });
 }

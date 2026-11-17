@@ -25,7 +25,7 @@ async function dropDbQuietly(page: Page, db: string) {
 
 /** Open the database menu from the sidebar "⋯" and pick an entry (by data-id). */
 async function dbMenu(page: Page, id: string, sub?: string) {
-  await page.locator('.db-head .more').click();
+  await page.getByTestId('db-menu').click();
   if (sub) {
     await page.locator(`[data-id="${id}"]`).click();
     await page.locator(`[data-id="${sub}"]`).click();
@@ -159,7 +159,7 @@ test('actions without privileges are disabled with the GRANT (read-only demo use
   const drop = page.locator('[data-id="dropDb"]');
   await expect(async () => {
     await page.keyboard.press('Escape');
-    await page.locator('.db-head .more').click();
+    await page.getByTestId('db-menu').click();
     await expect(drop).toHaveAttribute('aria-disabled', 'true', { timeout: 500 });
   }).toPass({ timeout: 10_000 });
   await expect(drop).toContainText('missing DROP privilege');

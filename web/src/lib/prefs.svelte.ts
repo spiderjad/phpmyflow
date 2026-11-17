@@ -17,6 +17,8 @@ interface Stored {
   /** Sidebar: one group per shared name prefix ("sap_", "cfg_"), names shown without it. */
   groupPrefix: boolean;
   tableSort: TableSort;
+  /** Sidebar folded to icons (Ctrl+B). */
+  sidebarCollapsed: boolean;
 }
 
 function read<T>(key: string, fallback: T): T {
@@ -36,10 +38,15 @@ function write(key: string, value: unknown) {
   }
 }
 
-export const prefs = $state<Stored>(read<Stored>(KEY, { density: 'compact', sidebarWidth: 248, groupPrefix: true, tableSort: 'name' }));
+export const prefs = $state<Stored>(read<Stored>(KEY, { density: 'compact', sidebarWidth: 248, groupPrefix: true, tableSort: 'name', sidebarCollapsed: false }));
 
 export function savePrefs() {
-  write(KEY, { density: prefs.density, sidebarWidth: prefs.sidebarWidth, groupPrefix: prefs.groupPrefix, tableSort: prefs.tableSort });
+  write(KEY, { density: prefs.density, sidebarWidth: prefs.sidebarWidth, groupPrefix: prefs.groupPrefix, tableSort: prefs.tableSort, sidebarCollapsed: prefs.sidebarCollapsed });
+}
+
+export function toggleSidebar() {
+  prefs.sidebarCollapsed = !prefs.sidebarCollapsed;
+  savePrefs();
 }
 
 export function setDensity(d: Density) {
@@ -51,7 +58,8 @@ export function setSidebarWidth(px: number) {
   prefs.sidebarWidth = Math.round(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, px)));
 }
 
-export const ROW_HEIGHT: Record<Density, number> = { compact: 26, comfortable: 34 };
+// Compact: dense, every border, soft zebra. Comfortable: tall rows, no vertical borders, more air.
+export const ROW_HEIGHT: Record<Density, number> = { compact: 26, comfortable: 40 };
 
 // --- pinned tables, per user@host:port and database ---
 

@@ -118,7 +118,7 @@ export function filterKind(type: string): 'number' | 'date' | 'text' {
 const MONO_CHAR = 7.4; // px per char at 12.5px ui-monospace
 const PROP_CHAR = 6.9; // average px per char at 13px Inter
 const MIN_WIDTH = 56;
-const MAX_WIDTH = 420;
+const MAX_WIDTH = 360; // long text stops here and ends in "…"
 const PADDING = 22;
 
 /**
@@ -129,8 +129,8 @@ export function autoWidths(columns: GridColumn[], rows: Cell[][], format: (v: Ce
   return columns.map((col, j) => {
     const mono = isMonoColumn(col);
     const perChar = mono ? MONO_CHAR : PROP_CHAR;
-    // Header: name (semibold) + type label.
-    let width = col.name.length * 7.4 + (col.type ? col.type.length * 6 + 6 : 0) + (col.pk ? 16 : 0);
+    // Header: type icon + name (the full type shows in the tooltip, or under the name in comfortable).
+    let width = 18 + col.name.length * 7.4;
     const limit = Math.min(rows.length, sample);
     for (let i = 0; i < limit; i++) {
       const text = format(rows[i][j], col);
@@ -180,6 +180,47 @@ export function formatDateFull(raw: string, kind: ColumnKind, locale: string, ti
   } catch {
     return raw;
   }
+}
+
+/**
+ * "hace 3 días" / "3 days ago" for the date tooltip (the cell keeps the exact
+ * date). Wall time against the browser clock; null when it isn't a real date.
+ */
+export function relativeDate(raw: string, locale: string, now = Date.now()): string | null {
+  const p = parseDate(raw);
+  return p ? relativeSeconds((p.date.getTime() - now) / 1000, locale) : null;
+}
+
+/** "hace 5 minutos" / "in 2 days" for a signed number of seconds (null if the locale fails). */
+export function relativeSeconds(s: number, locale: string): string | null {
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ['year', 365 * 86400],
+    ['month', 30 * 86400],
+    ['week', 7 * 86400],
+    ['day', 86400],
+    ['hour', 3600],
+    ['minute', 60],
+  ];
+  try {
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    for (const [unit, size] of units) if (Math.abs(s) >= size) return rtf.format(Math.round(s / size), unit);
+    return rtf.format(Math.round(s), 'second');
+  } catch {
+    return null;
+  }
+}
+
+/** Header icon per column: what kind of value it holds (keys and relations are shown apart). */
+export type TypeIcon = 'tNum' | 'tText' | 'tLong' | 'tDate' | 'tTime' | 'tBool' | 'tBin' | 'tJson' | 'tEnum' | 'tLink';
+export function typeIcon(col: GridColumn, linked = false): TypeIcon {
+  if (linked) return 'tLink';
+  if (isBoolColumn(col)) return 'tBool';
+  const base = col.type.split('(')[0].trim().toLowerCase();
+  if (base === 'json') return 'tJson';
+  if (base === 'enum' || base === 'set') return 'tEnum';
+  if (/^(tiny|medium|long)?text$/.test(base)) return 'tLong';
+  const icons: Record<ColumnKind, TypeIcon> = { number: 'tNum', date: 'tDate', datetime: 'tDate', time: 'tTime', binary: 'tBin', text: 'tText' };
+  return icons[columnKind(col.type)];
 }
 
 /**

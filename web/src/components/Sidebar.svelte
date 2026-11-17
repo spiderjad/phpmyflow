@@ -3,7 +3,9 @@
   // menu). The database on top as the "company" row (it switches databases),
   // then search, create (+) and the database menu (⋯), the list (pinned, tables
   // with one fold per shared prefix such as "sap_" / "cfg_", views and the other
-  // objects) and the connection at the bottom. Each row shows one number and the
+  // objects) and the connection at the bottom. Ctrl+B folds it to icons (App adds
+  // spider-ui's v-shell--contraido; what carries v-sidebar__hide disappears).
+  // Each row shows one number and the
   // "Tables" line says which one. Empty groups are left out. The current row
   // takes the theme accent (scoped --sp-primary-*), so violet only shows up in
   // the Spider theme and stays the assistant's color everywhere else.
@@ -11,6 +13,7 @@
   import type { TableInfo } from '../lib/api';
   import { formatBytes } from '../lib/bytes';
   import { fuzzyFilter, prefixGroups, type FuzzyMatch } from '../lib/fuzzy';
+  import { sortTables } from '../lib/tableOrder';
   import { i18n, n, t } from '../lib/i18n.svelte';
   import { MENU_ICONS } from '../lib/menuIcons';
   import { pinnedTables, prefs, savePrefs, togglePin, type TableSort } from '../lib/prefs.svelte';
@@ -22,7 +25,7 @@
   import type { ObjKind } from '../lib/objects';
   import type { MenuItem } from './ui/Menu.svelte';
 
-  let { onsettings, onlogout }: { onsettings?: () => void; onlogout?: () => void } = $props();
+  let { onsettings, onlogout, onpalette }: { onsettings?: () => void; onlogout?: () => void; onpalette?: () => void } = $props();
 
   // Collapsed groups (remembered): 'views', … and 'p:<prefix>' for prefix groups.
   const GROUP_KEY = 'pmf_side_collapsed';
@@ -45,8 +48,8 @@
       /* ignore */
     }
   }
-  // A typed filter opens every group that has matches.
-  const isOpen = (g: string) => !!filter.trim() || !collapsed.has(g);
+  // A typed filter opens every group that has matches; folded to icons, every table shows.
+  const isOpen = (g: string) => prefs.sidebarCollapsed || !!filter.trim() || !collapsed.has(g);
 
   type ObjGroup = 'procedures' | 'functions' | 'triggers' | 'events';
   const OBJ_KIND: Record<ObjGroup, ObjKind> = { procedures: 'PROCEDURE', functions: 'FUNCTION', triggers: 'TRIGGER', events: 'EVENT' };
@@ -67,12 +70,7 @@
 
   const databases = $derived(app.databases.filter((d) => showSystem || !d.system || d.name === app.db));
   const maxBytes = $derived(Math.max(1, ...app.tables.map((tb) => Number(tb.bytes ?? 0))));
-  const sorted = $derived.by(() => {
-    const list = [...app.tables];
-    if (prefs.tableSort === 'size') list.sort((a, b) => Number(b.bytes ?? 0) - Number(a.bytes ?? 0) || a.name.localeCompare(b.name));
-    else if (prefs.tableSort === 'rows') list.sort((a, b) => Number(b.approxRows ?? 0) - Number(a.approxRows ?? 0) || a.name.localeCompare(b.name));
-    return list;
-  });
+  const sorted = $derived(sortTables(app.tables, prefs.tableSort));
   // A typed filter ranks by match quality; otherwise the chosen sort applies.
   const matches = $derived(fuzzyFilter(sorted, filter, (tb) => tb.name));
   const size = (b: number | null | undefined) => formatBytes(b, i18n.locale);
@@ -252,11 +250,11 @@
       <span class="v-sidebar__slot">{@render icon(tb.type === 'VIEW' ? 'view' : 'table')}</span>
       <span class="v-nav-item__label">{#if prefix}<span class="sr-only">{prefix}</span>{/if}{#each segments(tb.name, match, prefix) as seg}{#if seg.hit}<mark>{seg.text}</mark>{:else}{seg.text}{/if}{/each}</span>
       {#if tb.type !== 'VIEW'}
-        <span class="pmf-value">{bySize ? size(tb.bytes) : compact.format(Number(tb.approxRows ?? 0))}</span>
+        <span class="pmf-value v-sidebar__hide">{bySize ? size(tb.bytes) : compact.format(Number(tb.approxRows ?? 0))}</span>
       {/if}
     </button>
     <button
-      class="pmf-pin"
+      class="pmf-pin v-sidebar__hide"
       class:on={isPinned}
       onclick={() => togglePin(tb.name)}
       aria-pressed={isPinned}
@@ -269,7 +267,7 @@
 {/snippet}
 
 {#snippet fold(key: string, title: string, count: number, opts: { prefix?: boolean; tip?: string } = {})}
-  <button class="v-sidebar__group" class:pmf-prefix={opts.prefix} aria-expanded={isOpen(key)} onclick={() => toggleGroup(key)} data-group={key} title={opts.tip}>
+  <button class="v-sidebar__group v-sidebar__hide" class:pmf-prefix={opts.prefix} aria-expanded={isOpen(key)} onclick={() => toggleGroup(key)} data-group={key} title={opts.tip}>
     {@render icon('chevDown')}
     <span class="pmf-fold-name">{title}</span>
     <span class="pmf-count">{n(count)}</span>
@@ -284,7 +282,7 @@
       {@render icon('database', 'pmf-db-icon')}
     {/if}
   </span>
-  <span class="v-sidebar__row-text">
+  <span class="v-sidebar__row-text v-sidebar__hide">
     <strong>{app.db || t('sidebar.pickDbShort')}</strong>
     {#if app.db}
       <!-- " · " keeps "name · …" as the button's text (e2e pickDb, screen readers). -->
@@ -320,10 +318,19 @@
   </div>
 
   <div class="v-sidebar__actions">
-    <label class="v-sidebar__search">
-      <span class="v-sidebar__slot">{@render icon('search')}</span>
-      <input type="search" placeholder={t('sidebar.filter')} bind:value={filter} onkeydown={onKey} aria-label={t('sidebar.filterLabel')} disabled={!app.db} />
-    </label>
+    {#if prefs.sidebarCollapsed}
+      <button class="v-sidebar__search pmf-goto" onclick={() => onpalette?.()} aria-label={t('palette.title')} title="{t('palette.title')} (Ctrl+P)" aria-keyshortcuts="Control+P" disabled={!app.db}>
+        <span class="v-sidebar__slot">{@render icon('search')}</span>
+      </button>
+    {:else}
+      <label class="v-sidebar__search">
+        <span class="v-sidebar__slot">{@render icon('search')}</span>
+        <input type="search" placeholder={t('sidebar.filter')} bind:value={filter} onkeydown={onKey} aria-label={t('sidebar.filterLabel')} disabled={!app.db} />
+        {#if app.db && !filter}
+          <button class="pmf-kbd" onclick={() => onpalette?.()} title="{t('palette.title')} (Ctrl+P)" aria-label={t('palette.title')} aria-keyshortcuts="Control+P">Ctrl P</button>
+        {/if}
+      </label>
+    {/if}
     <button
       class="v-sidebar__add"
       aria-haspopup="menu"
@@ -338,6 +345,7 @@
       aria-haspopup="menu"
       aria-label={t('dbmenu.label', { db: app.db })}
       title={t('dbmenu.label', { db: app.db })}
+      data-testid="db-menu"
       disabled={!app.db}
       onclick={(e) => menuAt(e.currentTarget as HTMLElement, dbMenuItems(app.db), t('dbmenu.label', { db: app.db }))}
     >
@@ -347,9 +355,9 @@
 
   <nav class="v-sidebar__nav tables" aria-label={t('sidebar.tables')}>
     {#if !app.db}
-      <p class="pmf-empty">{t('sidebar.pickDb')}</p>
+      <p class="pmf-empty v-sidebar__hide">{t('sidebar.pickDb')}</p>
     {:else if app.loadingTables}
-      <p class="pmf-empty">{t('common.loading')}</p>
+      <p class="pmf-empty v-sidebar__hide">{t('common.loading')}</p>
     {:else}
       {#if pinned.length && !searching}
         <p class="v-sidebar__section">{t('sidebar.pinned')}</p>
@@ -360,7 +368,7 @@
         <span class="pmf-count">{n(tableMatches.length)}</span>
         {#if tableMatches.length}<span class="pmf-metric" title={metricTip}>{metric}</span>{/if}
         <button
-          class="pmf-tool"
+          class="pmf-tool v-sidebar__hide"
           aria-haspopup="menu"
           aria-label={t('sidebar.options')}
           title={t('sidebar.optionsTip')}
@@ -371,7 +379,7 @@
         </button>
       </div>
       {#if !matches.length && !objMatches.total}
-        <p class="pmf-empty">{filter ? t('sidebar.noMatch') : t('sidebar.empty')}</p>
+        <p class="pmf-empty v-sidebar__hide">{filter ? t('sidebar.noMatch') : t('sidebar.empty')}</p>
       {/if}
       {#each tableGroups as g (g.key)}
         {#if g.items.length}
@@ -419,7 +427,7 @@
                 >
                   <span class="v-sidebar__slot">{@render icon(OBJ_ICON[kind])}</span>
                   <span class="v-nav-item__label">{#each segments(m.item.name, m.match) as seg}{#if seg.hit}<mark>{seg.text}</mark>{:else}{seg.text}{/if}{/each}</span>
-                  {#if m.item.detail}<span class="pmf-value">{m.item.detail}</span>{/if}
+                  {#if m.item.detail}<span class="pmf-value v-sidebar__hide">{m.item.detail}</span>{/if}
                 </button>
               </div>
             {/each}
@@ -439,7 +447,7 @@
         onclick={(e) => menuAt(e.currentTarget as HTMLElement, accountMenu(), `${user}@${host}`)}
       >
         <span class="v-sidebar__slot"><span class="v-avatar">{initialOf(user)}</span></span>
-        <span class="v-sidebar__row-text"><strong>{user}</strong><span>{host}</span></span>
+        <span class="v-sidebar__row-text v-sidebar__hide"><strong>{user}</strong><span>{host}</span></span>
         {@render icon('chevUpDown')}
       </button>
     </div>
@@ -491,6 +499,33 @@
   }
   .v-sidebar__search input::placeholder {
     color: var(--sp-text-secondary);
+  }
+  /* "Ctrl P" (go to table) shows when the field is pointed at or focused, so the placeholder stays readable. */
+  .pmf-kbd {
+    display: none;
+    flex: none;
+    margin-right: 6px;
+    padding: 0 5px;
+    border: 1px solid var(--sp-border);
+    border-radius: 4px;
+    background: var(--sp-bg);
+    color: var(--sp-text-secondary);
+    font: inherit;
+    font-size: var(--sp-fs-2xs);
+    line-height: 16px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .v-sidebar__search:hover .pmf-kbd,
+  .v-sidebar__search:focus-within .pmf-kbd {
+    display: inline-block;
+  }
+  .pmf-kbd:hover {
+    color: var(--sp-text-primary);
+    border-color: var(--sp-border-hover);
+  }
+  .pmf-kbd:focus-visible {
+    outline: 2px solid var(--sp-focus);
   }
   .v-sidebar__add:disabled {
     opacity: 0.5;

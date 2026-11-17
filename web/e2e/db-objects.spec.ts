@@ -30,7 +30,7 @@ async function setBody(page: Page, text: string) {
 }
 
 async function createNew(page: Page, id: string) {
-  await page.locator('.db-head .more').click();
+  await page.getByTestId('db-menu').click();
   await page.locator('[data-id="createNew"]').click();
   await page.locator(`[data-id="${id}"]`).click();
 }
