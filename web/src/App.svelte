@@ -253,13 +253,12 @@
         <button class="v-btn-icon v-btn--sm" aria-label={t('settings.title')} title="{t('settings.title')} (Ctrl+,)" aria-keyshortcuts="Control+Comma" onclick={() => settingsDialog?.open()}>
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
         </button>
-        <span class="who" title={app.serverVersion}>{app.session.auth.user}@{app.session.auth.host}</span>
         <button class="v-btn-ghost v-btn--sm" onclick={() => logoutDialog?.open()}>{t('nav.logout')}</button>
       </div>
     </header>
 
     <div class="side-wrap" onclick={(e) => { if ((e.target as HTMLElement).closest('[data-table], [data-object]')) menuOpen = false; }} role="presentation">
-      <Sidebar />
+      <Sidebar onsettings={() => settingsDialog?.open()} onlogout={() => logoutDialog?.open()} />
       <!-- Focusable separator = ARIA "window splitter" pattern, keyboard resizable. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
       <div
@@ -363,8 +362,10 @@
     grid-template-columns: var(--side-w, 248px) 1fr;
     grid-template-rows: 48px 1fr;
   }
+  /* spider-ui app frame: the menu runs the full height, the top bar sits over the content. */
   .top {
-    grid-column: 1 / -1;
+    grid-column: 2;
+    grid-row: 1;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -421,12 +422,10 @@
     align-items: center;
     gap: 10px;
   }
-  .who {
-    font-size: 12px;
-    color: var(--sp-text-tertiary);
-    font-family: var(--sp-font-mono);
-  }
   .side-wrap {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    display: flex;
     position: relative;
     min-height: 0;
     min-width: 0;
@@ -447,6 +446,8 @@
     outline: none;
   }
   .content {
+    grid-column: 2;
+    grid-row: 2;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
@@ -526,10 +527,13 @@
     .shell {
       grid-template-columns: 1fr;
     }
+    .top,
+    .content {
+      grid-column: 1;
+    }
     .burger {
       display: inline-flex;
     }
-    .who,
     .crumbs .sep,
     .crumbs .mono {
       display: none;
@@ -538,7 +542,7 @@
       display: none;
     }
     .menu-open .side-wrap {
-      display: block;
+      display: flex;
       position: fixed;
       inset: 48px auto 0 0;
       width: min(300px, 85vw);

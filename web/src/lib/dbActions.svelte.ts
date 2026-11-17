@@ -96,6 +96,7 @@ export function dbMenuItems(db: string): MenuItem[] {
         gated(t('dbmenu.new.tableCopy'), need(['CREATE', 'INSERT', 'SELECT']), () => app.table && openDialog({ kind: 'copyTable', db, table: app.table }), {
           disabled: !app.table || !need(['CREATE', 'INSERT', 'SELECT']).ok,
           note: !app.table ? t('dbmenu.pickTable') : undefined,
+          icon: 'copy',
         }),
         gated(t('dbmenu.new.view'), need(['CREATE VIEW']), () => openObject('VIEW', null), { id: 'newView', disabled: !hasDb || !need(['CREATE VIEW']).ok }),
         gated(t('dbmenu.new.procedure'), need(['CREATE ROUTINE']), () => openObject('PROCEDURE', null), { id: 'newProcedure', disabled: !hasDb || !need(['CREATE ROUTINE']).ok }),

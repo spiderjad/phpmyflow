@@ -10,6 +10,7 @@
 @import 'spider-ui/tokens.css';
 @import 'spider-ui/panel.css';
 @import 'spider-ui/data.css';
+@import 'spider-ui/shell.css';
 /* Themes after spider-ui: same token names, keyed on data-theme / data-mode (styles/themes/index.css). */
 @import './themes/index.css';
 

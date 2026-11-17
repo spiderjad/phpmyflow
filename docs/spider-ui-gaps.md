@@ -13,7 +13,7 @@ phpMyFlow's look moved upstream as `data.css` (apps de datos) and `themes.css`:
 
 | Was a gap | Upstream now | phpMyFlow |
 |---|---|---|
-| Sidebar object list | `v-explorer` (two rows on top, one number per row named in the group head, prefix groups, no empty groups, card-style current row) | `Sidebar.svelte` uses it |
+| Sidebar object list | app frame menu (`shell.css`: `v-sidebar__panel`, `__row` + `v-mark`, `__search`, `__add`, `__section`, `__group`, `v-nav-item--compact`, `__foot` + `v-avatar`) | `Sidebar.svelte` uses it (not `v-explorer`); still local (`pmf-*`): an input inside `v-sidebar__search`, the number at the right of a `v-nav-item`, the count in a `v-sidebar__group`, the pin button, the current row in the theme accent instead of violet |
 | Bulk actions with nothing selected | `v-selectionbar` (+ `--idle` hint) | `DbOverview.svelte` uses it |
 | Compact table | `v-grid` (sticky header, mono cells, `v-grid__num`, `aria-sort` arrows, `--sp-row-dense`) | `table.grid` in `app.css` and `DataGrid` still local |
 | View tabs | `v-appbar` + `v-tabs` (underline) | top bar in `App.svelte` still local (same look) |

@@ -90,7 +90,7 @@ web/                    Svelte 5 + Vite + TypeScript UI
   src/components/settings/  SettingsDialog (gear / Ctrl+,), ThemeCards, AccentPicker, LivePreview, ConnectionsSection
   src/lib/connections.ts  recent logins (max 4, no passwords), color/env per server (config.php wins on env), suggested env by host
   src/components/login/ ServerPicker (grouped listbox in the auth look); Login.svelte uses spider-ui auth-* under data-mode-scope="light"
-  src/components/       Login, Sidebar (spider-ui v-explorer: database + ⋯, search + list options menu, one number per row, prefix groups, no empty groups), DataGrid (shared by TableView and SqlView), RowDetail, StructureView, SqlEditor, AiPanel…
+  src/components/       Login, Sidebar (spider-ui app frame menu from shell.css, the SpiderFolio look: full height, database row on top (switches databases), search + create (+) + database menu (⋯), "Tables" line with the row metric and list options, prefix folds, no empty groups, connection row at the bottom; current row in the theme accent, never violet outside the Spider theme), DataGrid (shared by TableView and SqlView), RowDetail, StructureView, SqlEditor, AiPanel…
   src/locales/*.json    en, es, it, fr
 docker/                 Dockerfile, sample.sql (shop database + read-only demo user), demo.sql (same data for shared hosting: no CREATE DATABASE/USE/USER/GRANT; tests/php/DemoTest.php keeps it in sync)
 site/                   public website (phpmyflow.spiderjad.com), NOT part of the release: static Astro, en at / and es at /es/ (it/fr prepared in src/i18n/locales.ts)
@@ -175,7 +175,7 @@ node -e "const f=['en','es','it','fr'].map(l=>Object.keys(require('./web/src/loc
 
 ## UI style
 
-Panel look from the spider-ui system (Vercel-like, monochrome); since spider-ui 1.4.0 this look lives upstream as `data.css` (v-explorer, v-grid, v-tabs, v-selectionbar…) and `themes.css` (docs/spider-ui-gaps.md says what is still local). Themes (Monochrome = spider-ui, Graphite, Slate, Spider, Forest, High contrast) only redefine `--sp-*` tokens in `web/src/styles/themes/`; a new token must be added to every theme and pass `lib/theme.test.ts`. Token names in `web/src/styles/app.css` match spider-ui (`--bg`, `--border`, `--text-primary`…) so the shared package can replace them later. Rules:
+Panel look from the spider-ui system (Vercel-like, monochrome); since spider-ui 1.4.0 this look lives upstream as `data.css` (v-grid, v-tabs, v-selectionbar…), `shell.css` (the sidebar uses the app frame menu) and `themes.css` (docs/spider-ui-gaps.md says what is still local). Themes (Monochrome = spider-ui, Graphite, Slate, Spider, Forest, High contrast) only redefine `--sp-*` tokens in `web/src/styles/themes/`; a new token must be added to every theme and pass `lib/theme.test.ts`. Token names in `web/src/styles/app.css` match spider-ui (`--bg`, `--border`, `--text-primary`…) so the shared package can replace them later. Rules:
 
 - Use the existing `.v-input`, `.v-btn-*`, `.v-badge`, `.grid` classes before writing new CSS.
 - Colors only through variables; both light and dark must work.

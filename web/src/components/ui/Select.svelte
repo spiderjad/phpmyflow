@@ -12,7 +12,7 @@
   // Custom select (spider-ui has no listbox select): a button that opens a
   // listbox. Keyboard: Enter/Space/↓ open, ↑/↓/Home/End move, Enter picks,
   // Esc closes, typing filters (with a search box when there are many).
-  import { tick, untrack } from 'svelte';
+  import { tick, untrack, type Snippet } from 'svelte';
   import { t } from '../../lib/i18n.svelte';
 
   let {
@@ -25,7 +25,23 @@
     disabled = false,
     id,
     placeholder = '',
-  }: { value: string; options: SelectOption[]; label: string; onchange: (v: string) => void; mono?: boolean; compact?: boolean; disabled?: boolean; id?: string; placeholder?: string } = $props();
+    trigger,
+    triggerClass,
+  }: {
+    value: string;
+    options: SelectOption[];
+    label: string;
+    onchange: (v: string) => void;
+    mono?: boolean;
+    compact?: boolean;
+    disabled?: boolean;
+    id?: string;
+    placeholder?: string;
+    /** Own button content (e.g. the sidebar's database row); gets the chosen option. */
+    trigger?: Snippet<[SelectOption | undefined]>;
+    /** Replaces the button's "v-input sel" look (used with `trigger`). */
+    triggerClass?: string;
+  } = $props();
 
   const uid = untrack(() => id) ?? `sel-${Math.random().toString(36).slice(2, 8)}`;
   let open = $state(false);
@@ -91,7 +107,7 @@
   bind:this={btn}
   id={uid}
   type="button"
-  class="v-input sel"
+  class={triggerClass ?? 'v-input sel'}
   class:mono
   class:compact
   aria-haspopup="listbox"
@@ -107,8 +123,12 @@
     }
   }}
 >
-  <span class="val" class:ph={!current && !value}>{current?.label ?? (value || placeholder)}</span>
-  <span class="chev" aria-hidden="true">▾</span>
+  {#if trigger}
+    {@render trigger(current)}
+  {:else}
+    <span class="val" class:ph={!current && !value}>{current?.label ?? (value || placeholder)}</span>
+    <span class="chev" aria-hidden="true">▾</span>
+  {/if}
 </button>
 
 {#if open}

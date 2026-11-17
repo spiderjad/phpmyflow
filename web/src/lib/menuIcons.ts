@@ -41,13 +41,21 @@ export const MENU_ICONS: Record<string, string> = {
   sliders: 'M2.5 4.5h6M11.5 4.5h2M2.5 8h2M7.5 8h6M2.5 11.5h7M12.5 11.5h1M10 3v3M6 6.5v3M11 10v3',
   more: 'M3.5 8h.01M8 8h.01M12.5 8h.01',
   chevDown: 'M4 6l4 4 4-4',
+  chevUpDown: 'M5 6l3-3 3 3M5 10l3 3 3-3',
+  logout: 'M6.5 13.5h-3v-11h3M10 5l3 3-3 3M13 8H6',
 };
 
 /** Icons for items that only have an id (dbActions, objects). */
 export const ID_ICONS: Record<string, string> = {
   overview: 'grid',
   createNew: 'plus',
-  newTable: 'plus',
+  newTable: 'table',
+  newDb: 'database',
+  newView: 'view',
+  newProcedure: 'play',
+  newFunction: 'fn',
+  newTrigger: 'zap',
+  newEvent: 'clock',
   search: 'search',
   export: 'export',
   import: 'import',
