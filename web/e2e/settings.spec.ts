@@ -96,3 +96,57 @@ test('reset section, data settings and the editor follow Settings', async ({ pag
   await page.locator('nav.tables button[data-table="customers"]').click();
   await expect(page.locator('table.dg td', { hasText: '2026-01-12 10:00:00' })).toBeVisible();
 });
+
+// The accent is what signals or is chosen, in the real app (not only the live preview):
+// with Forest and the violet swatch, the active tab, the current sidebar row and the main
+// button ("+ Add row") turn violet; the theme's own accent ("A") brings Forest's green back.
+test('a custom accent colors the active tab, the current sidebar row and "+ Add row"; "A" brings the theme back', async ({ page }) => {
+  await page.locator('nav.tables button[data-table="customers"]').click();
+  await expect(page.getByRole('button', { name: '+ Add row' })).toBeVisible();
+  const pick = async (accentName: string) => {
+    const dlg = await openSettings(page);
+    await dlg.getByRole('radiogroup', { name: 'Mode' }).getByRole('radio', { name: 'Light' }).click();
+    const themes = dlg.getByRole('radiogroup', { name: 'Theme' });
+    if ((await themes.getByRole('radio', { name: /^Forest/ }).getAttribute('aria-checked')) !== 'true') await themes.getByRole('radio', { name: /^Forest/ }).click();
+    await dlg.getByRole('radiogroup', { name: 'Accent color' }).getByRole('radio', { name: accentName, exact: true }).click();
+    await page.keyboard.press('Escape');
+    await expect(dlg).toBeHidden();
+  };
+  // Hue (0-360) of the first color in a computed value: rgb(...) or color(srgb ...).
+  const hues = () =>
+    page.evaluate(() => {
+      const hue = (css: string) => {
+        const m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(css) ?? /color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(css);
+        if (!m) return -1;
+        const k = css.includes('color(srgb') ? 255 : 1;
+        const [r, g, b] = m.slice(1, 4).map((x) => Number(x) * k);
+        const max = Math.max(r, g, b);
+        const d = max - Math.min(r, g, b);
+        if (!d) return -1;
+        const h = (max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60;
+        return Math.round(h < 0 ? h + 360 : h);
+      };
+      const tab = document.querySelector('nav.tabs button.active') as HTMLElement;
+      const row = document.querySelector('nav.tables button[aria-current="page"]') as HTMLElement;
+      const add = [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === '+ Add row') as HTMLElement;
+      const raw = { tab: getComputedStyle(tab).boxShadow, row: getComputedStyle(row).backgroundColor, add: getComputedStyle(add).backgroundColor };
+      return { tab: hue(raw.tab), row: hue(raw.row), add: hue(raw.add), raw };
+    });
+  const violet = (h: number) => h >= 230 && h <= 300;
+  const green = (h: number) => h >= 100 && h <= 170;
+
+  // Colors ease in (CSS transitions): wait until they settle.
+  const settled = async (ok: (h: number) => boolean) => {
+    await expect
+      .poll(async () => {
+        const h = await hues();
+        return ok(h.tab) && ok(h.row) && ok(h.add);
+      }, { message: 'active tab, current sidebar row and "+ Add row" in the accent' })
+      .toBe(true);
+  };
+  await pick('Violet');
+  await settled(violet);
+
+  await pick("The theme's (Forest)");
+  await settled(green);
+});

@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { describe, expect, it } from 'vitest';
-import { accentVars, appearanceToDom, checkAccent, contrast, DEFAULT_APPEARANCE, normalizeAppearance, onColor, PALETTE, THEMES, COLORS } from './theme';
+import { accentRoles, appearanceToDom, checkAccent, contrast, DEFAULT_APPEARANCE, normalizeAppearance, onColor, PALETTE, THEMES, COLORS } from './theme';
+import { SURFACES } from './themeSurfaces';
 
 // Tokens straight from the CSS the browser loads.
 const files = import.meta.glob('../styles/themes/*.css', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -147,6 +148,47 @@ describe('every theme has its own look', () => {
   }
 });
 
+// lib/themeSurfaces.ts repeats a few CSS values for the accent math: they must stay equal.
+describe('the surfaces table matches the theme CSS', () => {
+  const KEYS: Record<string, string> = { bg: '--sp-bg', text: '--sp-text-primary', textMuted: '--sp-text-secondary', sidebarBg: '--sidebar-bg', sidebarText: '--sidebar-text', topbarBg: '--topbar-bg', accent: '--sp-inverse' };
+  for (const theme of THEMES)
+    for (const mode of ['light', 'dark'] as const)
+      it(`${theme} / ${mode}`, () => {
+        const tk = tokens(theme, mode);
+        for (const [k, css] of Object.entries(KEYS)) expect(SURFACES[theme][mode][k as keyof (typeof SURFACES)['monochrome']['light']], `${k} (${css})`).toBe(tk[css].toLowerCase());
+      });
+});
+
+// A custom accent drives what signals or is chosen; whatever the color, it stays readable on
+// every theme's surfaces (sidebar, top bar, page) in both modes.
+describe('a custom accent stays AA on every theme', () => {
+  const EXTRA = ['#fde047', '#000000', '#ffffff', '#2563eb', '#ff00ff', '#00ffff', '#808080'];
+  for (const theme of THEMES)
+    for (const mode of ['light', 'dark'] as const)
+      it(`${theme} / ${mode}`, () => {
+        const s = SURFACES[theme][mode];
+        const failures: string[] = [];
+        for (const c of [...COLORS.map((x) => PALETTE[x][mode]), ...EXTRA]) {
+          const r = accentRoles(c, s, mode);
+          const need = (fg: string, bg: string, min: number, what: string) => {
+            const x = contrast(fg, bg);
+            if (x < min) failures.push(`${c} ${what}: ${x.toFixed(2)} < ${min}`);
+          };
+          need(r['--sp-on-inverse'], r['--sp-inverse'], 4.5, 'button text');
+          need(r['--sp-on-inverse'], r['--sp-inverse-hover'], 4.5, 'button text (hover)');
+          need(r['--focus-ring'], s.bg, 3, 'focus on the page');
+          need(r['--tab-active-indicator'], s.topbarBg, 3, 'active tab on the top bar');
+          need(r['--sidebar-active-text'], r['--sidebar-active-bg'], 4.5, 'current sidebar row');
+          need(r['--sidebar-active-indicator'], s.sidebarBg, 3, 'row marker on the sidebar');
+          need(r['--sidebar-on-accent'], r['--sidebar-accent'], 4.5, 'database initial');
+          need(s.text, r['--grid-row-selected'], 4.5, 'text on a selected row');
+          need(s.textMuted, r['--grid-row-selected'], 4.5, 'muted text on a selected row');
+          need(r['--chip-text'], r['--chip-bg'], 4.5, 'chip');
+        }
+        expect(failures).toEqual([]);
+      });
+});
+
 describe('contrast math', () => {
   it('matches WCAG reference values', () => {
     expect(contrast('#000000', '#ffffff')).toBeCloseTo(21, 5);
@@ -163,7 +205,7 @@ describe('contrast math', () => {
     expect(yellow.on).toBe('#000000');
     expect(yellow.onRatio).toBeGreaterThanOrEqual(4.5);
     expect(checkAccent('#1d4ed8', '#ffffff').ok).toBe(true);
-    expect(accentVars('#fde047', 'light')['--sp-on-inverse']).toBe('#000000');
+    expect(accentRoles('#fde047', SURFACES.monochrome.light, 'light')['--sp-on-inverse']).toBe('#000000');
   });
 });
 

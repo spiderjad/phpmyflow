@@ -1,16 +1,17 @@
 <script lang="ts">
-  // Accent: the theme's own ("A", the default and what choosing a theme brings
-  // back), or a custom one: one of the 8 system colors (they follow the mode)
-  // or any color. A custom accent says so ("Custom (over Spider)"): it replaces
-  // the theme's in buttons, links and focus; the sidebar and the bars keep the
-  // theme. role="radiogroup" with arrow keys. Under 4.5:1 on the background a
-  // warning says so; the text on accent buttons is always switched to white or
-  // black (lib/theme.ts accentVars).
+  // Accent: the theme's own ("A", painted with that theme's accent; the default
+  // and what choosing a theme brings back), or a custom one: one of the 8 system
+  // colors (they follow the mode) or any color. A custom accent says so
+  // ("Custom (over Spider)"); it drives everything that signals or is chosen
+  // (lib/theme.ts accentRoles), the surfaces stay the theme's. The color field
+  // always shows the accent in use, with its hex. role="radiogroup" with arrow
+  // keys. Under 4.5:1 on the background a warning says so; the text on accent
+  // buttons is always white or black, whichever is readable.
   import { tick } from 'svelte';
   import { t, n } from '../../lib/i18n.svelte';
-  import { accentHex, checkAccent, COLORS, currentBg, onThemeChange, PALETTE, type ColorId } from '../../lib/theme';
+  import { accentHex, checkAccent, COLORS, currentBg, onColor, onThemeChange, PALETTE, themeAccent, type ColorId, type ThemeId } from '../../lib/theme';
 
-  let { value, theme, disabled = false, onchange }: { value: string | null; theme: string; disabled?: boolean; onchange: (v: string | null) => void } = $props();
+  let { value, theme, themeId, disabled = false, onchange }: { value: string | null; theme: string; themeId: ThemeId; disabled?: boolean; onchange: (v: string | null) => void } = $props();
 
   // Current mode and background (they change with the theme and the OS).
   let mode = $state<'light' | 'dark'>(document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'light');
@@ -27,9 +28,13 @@
   const selectedIndex = $derived(value === null ? 0 : isCustom ? choices.length - 1 : choices.indexOf(value));
   const hex = $derived(accentHex(value, mode));
   const check = $derived(hex ? checkAccent(hex, bg) : null);
+  /** The theme's own accent ("A") and the accent in use right now. */
+  const themeHex = $derived(themeAccent(themeId, mode));
+  const activeHex = $derived(hex ?? themeHex);
+  // The color field follows the accent in use (a swatch, "A", the mode).
   let customColor = $state('#2563eb');
   $effect(() => {
-    if (isCustom && value) customColor = value;
+    customColor = activeHex;
   });
   let root: HTMLDivElement;
   let colorInput: HTMLInputElement | undefined = $state();
@@ -67,7 +72,8 @@
         aria-disabled={disabled || undefined}
         tabindex={i === selectedIndex ? 0 : -1}
         title={label(c)}
-        style:--sw={c && c !== 'custom' ? PALETTE[c as ColorId][mode] : c === 'custom' ? customColor : undefined}
+        style:--sw={c === null ? themeHex : c !== 'custom' ? PALETTE[c as ColorId][mode] : customColor}
+        style:--sw-on={c === null ? onColor(themeHex) : undefined}
         onclick={() => choose(c)}
         onkeydown={(e) => key(e, i)}
       >
@@ -88,7 +94,7 @@
         onchange(customColor);
       }}
     />
-    <span class="mono">{isCustom ? value : ''}</span>
+    <span class="mono st-hex" title={t('settings.accentInUse')}>{activeHex.toUpperCase()}</span>
   </label>
 </div>
 <p class="st-acc-state" class:over={value !== null} aria-live="polite">
@@ -157,8 +163,9 @@
     cursor: pointer;
   }
   .st-sw.theme {
-    background: var(--sp-inverse);
-    color: var(--sp-on-inverse);
+    background: var(--sw);
+    color: var(--sw-on);
+    font-weight: 700;
   }
   .st-sw.custom {
     background: conic-gradient(var(--chart-1), var(--chart-2), var(--chart-3), var(--chart-4), var(--chart-1));

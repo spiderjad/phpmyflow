@@ -118,7 +118,7 @@
           </div>
           <div class="st-block">
             <span class="st-lbl">{t('settings.accent')}</span>
-            <AccentPicker value={settings.appearance.accent} theme={t(`theme.name.${settings.appearance.theme}`)} disabled={locked} onchange={(v) => update('appearance', { accent: v })} />
+            <AccentPicker value={settings.appearance.accent} theme={t(`theme.name.${settings.appearance.theme}`)} themeId={settings.appearance.theme} disabled={locked} onchange={(v) => update('appearance', { accent: v })} />
           </div>
           <div class="st-row">
             <span class="st-lbl">{t('settings.density')}</span>

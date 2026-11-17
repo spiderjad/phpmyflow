@@ -1,8 +1,13 @@
 // Themes: attributes on <html> (data-theme, data-mode, data-density,
-// data-radius) select token sets in styles/themes/*.css. A custom accent and
-// the text size are inline custom properties. Everything applied here is
-// also mirrored to localStorage 'pmf_appearance', which the inline script in
-// index.html reads before the first paint (no flash of the default theme).
+// data-radius) select token sets in styles/themes/*.css. The theme owns the
+// surfaces (sidebar, top bar, grid header, --surface-*); the accent owns what
+// signals or is chosen (buttons, focus, active tab, current sidebar row,
+// selected grid row, chips). A custom accent derives those tokens here
+// (accentRoles, readable on the theme's surfaces) and sets them inline, with
+// the text size. Everything applied here is also mirrored to localStorage
+// 'pmf_appearance', which the inline script in index.html reads before the
+// first paint (no flash of the default theme or accent).
+import { SURFACES, type ThemeSurfaces } from './themeSurfaces';
 
 export const THEMES = ['monochrome', 'graphite', 'slate', 'spider', 'forest', 'contrast'] as const;
 export type ThemeId = (typeof THEMES)[number];
@@ -91,15 +96,84 @@ export function checkAccent(accent: string, bg: string): AccentCheck {
   return { ratio, ok: ratio >= 4.5, on, onRatio: contrast(accent, on) };
 }
 
-/** Custom accent → spider-ui tokens (primary button, its hover, text on it, focus outline). */
-export function accentVars(accent: string, mode: 'light' | 'dark'): Record<string, string> {
+/** `color` moved toward black or white (whichever helps on `bg`) until it is `min`:1 on `bg`. */
+export function ensureContrast(color: string, bg: string, min: number): string {
+  if (contrast(color, bg) >= min) return color;
+  const toward = luminance(bg) < 0.18 ? '#ffffff' : '#000000';
+  for (let i = 1; i <= 20; i++) {
+    const c = mix(color, toward, i / 20);
+    if (contrast(c, bg) >= min) return c;
+  }
+  return toward;
+}
+
+/** Every token an accent sets (the theme keeps the surfaces). */
+export const ACCENT_ROLE_VARS = [
+  '--sp-inverse',
+  '--sp-inverse-hover',
+  '--sp-on-inverse',
+  '--sp-focus',
+  '--focus-ring',
+  '--grid-cell-focus',
+  '--tab-active-indicator',
+  '--sidebar-active-bg',
+  '--sidebar-active-text',
+  '--sidebar-active-indicator',
+  '--sidebar-accent',
+  '--sidebar-on-accent',
+  '--sidebar-focus',
+  '--grid-row-selected',
+  '--chip-bg',
+  '--chip-text',
+  '--chip-border',
+] as const;
+
+/**
+ * An accent → the tokens that signal or are chosen, for one theme and mode:
+ * the primary button is the accent itself (its text white or black, AA); lines
+ * and rings are moved until 3:1 on the surface they sit on; soft fills (current
+ * sidebar row, selected grid row, chips) mix the accent into the surface and
+ * keep their text at 4.5:1. AA is checked for every theme, mode and color.
+ */
+export function accentRoles(accent: string, s: ThemeSurfaces, mode: 'light' | 'dark'): Record<string, string> {
   const on = onColor(accent);
+  const hover = mix(accent, on === '#ffffff' ? '#000000' : '#ffffff', 0.15);
+  const onPage = ensureContrast(accent, s.bg, 3);
+  const onSide = ensureContrast(accent, s.sidebarBg, 3);
+  const darkSide = luminance(s.sidebarBg) < 0.18;
+  const activeBg = mix(s.sidebarBg, accent, darkSide ? 0.32 : 0.16);
+  const activeText = ensureContrast(darkSide ? mix(accent, '#ffffff', 0.6) : mix(accent, '#000000', 0.35), activeBg, 4.5);
+  let t = mode === 'dark' ? 0.24 : 0.12;
+  let selected = mix(s.bg, accent, t);
+  while (t > 0.02 && (contrast(s.text, selected) < 4.5 || contrast(s.textMuted, selected) < 4.5)) {
+    t -= 0.02;
+    selected = mix(s.bg, accent, t);
+  }
+  const chipBg = mix(s.bg, accent, mode === 'dark' ? 0.18 : 0.1);
   return {
     '--sp-inverse': accent,
-    '--sp-inverse-hover': mix(accent, mode === 'dark' ? '#ffffff' : '#000000', 0.15),
+    '--sp-inverse-hover': hover,
     '--sp-on-inverse': on,
-    '--sp-focus': accent,
+    '--sp-focus': onPage,
+    '--focus-ring': onPage,
+    '--grid-cell-focus': onPage,
+    '--tab-active-indicator': ensureContrast(accent, s.topbarBg, 3),
+    '--sidebar-active-bg': activeBg,
+    '--sidebar-active-text': activeText,
+    '--sidebar-active-indicator': onSide,
+    '--sidebar-accent': onSide,
+    '--sidebar-on-accent': onColor(onSide),
+    '--sidebar-focus': onSide,
+    '--grid-row-selected': selected,
+    '--chip-bg': chipBg,
+    '--chip-text': ensureContrast(mode === 'dark' ? mix(accent, '#ffffff', 0.45) : mix(accent, '#000000', 0.3), chipBg, 4.5),
+    '--chip-border': mix(s.bg, accent, mode === 'dark' ? 0.38 : 0.3),
   };
+}
+
+/** The theme's own accent ("A"), per mode. */
+export function themeAccent(theme: ThemeId, mode: 'light' | 'dark'): string {
+  return SURFACES[theme][mode].accent;
 }
 
 // --- applying ---
@@ -116,16 +190,21 @@ export function accentHex(accent: string | null, mode: 'light' | 'dark'): string
   return parseHex(accent) ? accent : null;
 }
 
+/** The inline tokens of a custom accent for one mode ({} = the theme's own accent). */
+export function accentDom(a: Appearance, mode: 'light' | 'dark'): Record<string, string> {
+  const hex = accentHex(a.accent, mode);
+  return hex ? accentRoles(hex, SURFACES[a.theme][mode], mode) : {};
+}
+
 export function appearanceToDom(a: Appearance, prefersDark: boolean): { attrs: Record<string, string>; vars: Record<string, string> } {
   const mode = resolveMode(a.mode, prefersDark);
-  const hex = accentHex(a.accent, mode);
-  const vars: Record<string, string> = hex ? accentVars(hex, mode) : {};
+  const vars: Record<string, string> = accentDom(a, mode);
   if (a.fontSize !== 14) vars['--pmf-zoom'] = String(a.fontSize / 14);
   return { attrs: { 'data-theme': a.theme, 'data-mode': mode, 'data-density': a.density, 'data-radius': a.radius }, vars };
 }
 
 const MIRROR_KEY = 'pmf_appearance';
-const ACCENT_VARS = ['--sp-inverse', '--sp-inverse-hover', '--sp-on-inverse', '--sp-focus', '--pmf-zoom'];
+const ACCENT_VARS = [...ACCENT_ROLE_VARS, '--pmf-zoom'];
 
 function prefersDark(): boolean {
   try {
@@ -146,8 +225,23 @@ export function applyAppearance(a: Appearance, root: HTMLElement = document.docu
   for (const k of ACCENT_VARS) if (!(k in vars)) root.style.removeProperty(k);
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
   try {
-    // accentLight / accentDark: resolved for the pre-paint script (it has no palette).
-    localStorage.setItem(MIRROR_KEY, JSON.stringify({ theme: a.theme, mode: a.mode, density: a.density, radius: a.radius, accent: a.accent, accentLight: accentHex(a.accent, 'light'), accentDark: accentHex(a.accent, 'dark'), fontSize: a.fontSize }));
+    // varsLight / varsDark: the accent's tokens resolved per mode for the pre-paint script
+    // (it has no palette and no color math); accentLight / accentDark kept for older pages.
+    localStorage.setItem(
+      MIRROR_KEY,
+      JSON.stringify({
+        theme: a.theme,
+        mode: a.mode,
+        density: a.density,
+        radius: a.radius,
+        accent: a.accent,
+        accentLight: accentHex(a.accent, 'light'),
+        accentDark: accentHex(a.accent, 'dark'),
+        varsLight: accentDom(a, 'light'),
+        varsDark: accentDom(a, 'dark'),
+        fontSize: a.fontSize,
+      }),
+    );
   } catch {
     /* storage blocked: still applied for this page */
   }

@@ -382,7 +382,7 @@
         <button class="v-btn-ghost v-btn--sm" onclick={clearFilters}>{t('grid.clearFilters')}</button>
       {/if}
       {#if meta && !readOnly && !isView && !isFolded('insert')}
-        <button class="v-btn-secondary v-btn--sm" onclick={() => (inserting = true)}>+ {t('insert.button')}</button>
+        <button class="v-btn-primary v-btn--sm" onclick={() => (inserting = true)}>+ {t('insert.button')}</button>
       {/if}
       {#if !isFolded('filter')}
         <button class="v-btn-ghost v-btn--sm" aria-pressed={filtersOpen} aria-expanded={filtersOpen} onclick={() => (filtersOpen = !filtersOpen)}>
