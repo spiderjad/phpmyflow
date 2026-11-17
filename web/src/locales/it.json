@@ -110,6 +110,7 @@
   "grid.density": "Densità delle righe",
   "grid.compact": "Compatta",
   "grid.comfortable": "Comoda",
+  "grid.moreActions": "Altre azioni",
   "grid.resizeColumn": "Ridimensiona la colonna {column}",
   "grid.rowNumber": "Numero di riga",
   "grid.detail": "Riga {n}",

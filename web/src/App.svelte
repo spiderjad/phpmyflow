@@ -359,8 +359,8 @@
   .shell {
     height: 100%;
     display: grid;
-    grid-template-columns: var(--side-w, 248px) 1fr;
-    grid-template-rows: 48px 1fr;
+    grid-template-columns: var(--side-w, 248px) minmax(0, 1fr);
+    grid-template-rows: 48px minmax(0, 1fr);
   }
   /* spider-ui app frame: the menu runs the full height, the top bar sits over the content. */
   .top {
@@ -376,8 +376,10 @@
   .burger {
     display: none;
   }
+  /* The crumbs give way first, then the tabs scroll; the right side never moves out. */
   .crumbs {
     display: flex;
+    flex: 0 1000 auto;
     align-items: center;
     gap: 8px;
     min-width: 0;
@@ -394,8 +396,12 @@
   }
   .tabs {
     display: flex;
+    flex: 0 1 auto;
     gap: 2px;
+    min-width: 0;
     margin-left: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   .tabs button {
     border: 0;
@@ -404,6 +410,7 @@
     border-radius: var(--sp-radius);
     font-size: 13px;
     color: var(--sp-text-secondary);
+    white-space: nowrap;
     cursor: pointer;
   }
   .tabs button:hover:not(:disabled) {
@@ -419,6 +426,7 @@
   .right {
     margin-left: auto;
     display: flex;
+    flex: none;
     align-items: center;
     gap: 10px;
   }

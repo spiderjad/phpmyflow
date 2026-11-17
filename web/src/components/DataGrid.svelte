@@ -1617,14 +1617,22 @@
   .status .k {
     color: var(--sp-text-secondary);
   }
+  .status > * {
+    flex-shrink: 0;
+  }
   .status .spacer {
     flex: 1;
   }
+  /* The hint gives way first: it shrinks with "…" instead of being cut. */
   .status .hint {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: var(--sp-text-tertiary);
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
+  }
+  .status .hint :global(.v-kbd) {
+    margin-right: 3px;
   }
   @media (max-width: 720px) {
     .status .hint {

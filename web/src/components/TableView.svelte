@@ -1,16 +1,20 @@
 <script lang="ts">
   import Select from './ui/Select.svelte';
-  import { untrack } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import { api, ApiError, editorApi, type Cell, type RowsResult } from '../lib/api';
   import { friendlyError } from '../lib/errors';
   import type { GridColumn } from '../lib/grid';
-  import { n, t } from '../lib/i18n.svelte';
+  import { i18n, n, t } from '../lib/i18n.svelte';
   import { linksOf } from '../lib/relations';
   import { columnKeys, type KeyIconData, type KeyInfo } from '../lib/keyIcons';
   import { settings } from '../lib/settings.svelte';
   import { applyLabels, collectRefs, lookupMany, type ColumnLabels } from '../lib/fkLabels';
   import { app, openFiltered } from '../lib/state.svelte';
   import { confirmAction, toast } from '../lib/ui.svelte';
+  import { openMenu } from '../lib/dbActions.svelte';
+  import { prefs } from '../lib/prefs.svelte';
+  import { update } from '../lib/settings.svelte';
+  import type { MenuItem } from './ui/Menu.svelte';
   import DataGrid from './DataGrid.svelte';
   import DensityToggle from './DensityToggle.svelte';
   import InsertRowDrawer from './InsertRowDrawer.svelte';
@@ -249,17 +253,80 @@
     page = p;
     load();
   }
+
+  // Bar actions that don't fit move into "⋯", in this order (the first one folds first).
+  // Measured, not fixed breakpoints: labels differ per language.
+  const FOLD_ORDER = ['refresh', 'density', 'clear', 'filter', 'insert'] as const;
+  type Fold = (typeof FOLD_ORDER)[number];
+  const META_MIN = 120; // the row count stays readable
+  let folded = $state(0);
+  let barW = $state(0);
+  let barEl: HTMLElement | undefined = $state();
+  let actionsEl: HTMLElement | undefined = $state();
+  const isFolded = (a: Fold) => FOLD_ORDER.indexOf(a) < folded;
+  // At most one fit per frame, so a resize storm can never keep the page busy.
+  let fitFrame = 0;
+  let fitting = false;
+  let refit = false;
+  function scheduleFit() {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(() => void fit());
+  }
+  async function fit() {
+    if (!barEl || !actionsEl) return;
+    if (fitting) {
+      refit = true;
+      return;
+    }
+    fitting = true;
+    folded = 0;
+    await tick();
+    const room = () => (barEl ? barEl.clientWidth - 28 - META_MIN : Infinity);
+    while (actionsEl && actionsEl.offsetWidth > room() && folded < FOLD_ORDER.length) {
+      folded++;
+      await tick();
+    }
+    fitting = false;
+    if (refit) {
+      refit = false;
+      scheduleFit();
+    }
+  }
+  $effect(() => {
+    void [barW, selected.size, filterCount, !!meta, readOnly, isView, i18n.locale, loading];
+    untrack(scheduleFit);
+    return () => cancelAnimationFrame(fitFrame);
+  });
+  const setDensity = (d: 'compact' | 'comfortable') => update('appearance', { density: d });
+  function moreMenu(): MenuItem[] {
+    const items: MenuItem[] = [];
+    if (isFolded('clear') && filterCount) items.push({ label: t('grid.clearFilters'), id: 'clear-filters', icon: 'exclude', action: clearFilters });
+    if (isFolded('insert') && meta && !readOnly && !isView) items.push({ label: t('insert.button'), id: 'insert-row', icon: 'plus', action: () => (inserting = true) });
+    if (isFolded('filter')) items.push({ label: t('grid.filter'), id: 'toggle-filters', icon: 'filter', checked: filtersOpen, toggle: true, action: () => (filtersOpen = !filtersOpen) });
+    if (isFolded('density')) {
+      if (items.length) items.push('sep');
+      items.push(
+        { label: t('grid.compact'), id: 'density-compact', checked: prefs.density === 'compact', action: () => setDensity('compact') },
+        { label: t('grid.comfortable'), id: 'density-comfortable', checked: prefs.density === 'comfortable', action: () => setDensity('comfortable') },
+      );
+    }
+    if (isFolded('refresh')) {
+      if (items.length) items.push('sep');
+      items.push({ label: t('common.refresh'), id: 'refresh', icon: 'refresh', disabled: loading, action: load });
+    }
+    return items;
+  }
 </script>
 
 <section class="view">
-  <header class="bar">
+  <header class="bar" bind:this={barEl} bind:clientWidth={barW}>
     <div class="meta">
       {#if meta}
         <span class="count" aria-live="polite">
           {#if total === null || totalApprox}~{/if}{t('grid.rows', { count: n(shownTotal) })}
           {#if counting}<span class="dim">· {t('grid.counting')}</span>{/if}
         </span>
-        <span class="dim">{t('common.ms', { ms: meta.timeMs })}</span>
+        <span class="dim ms">{t('common.ms', { ms: meta.timeMs })}</span>
       {/if}
       {#if meta && !meta.primaryKey.length}
         <span class="v-badge" title={t('grid.noPkHelp')}>{t('grid.noPk')}</span>
@@ -268,21 +335,40 @@
         <span class="v-badge">{t('common.readOnly')}</span>
       {/if}
     </div>
-    <div class="actions">
+    <div class="actions" bind:this={actionsEl}>
       {#if selected.size && editable}
         <button class="v-btn-danger v-btn--sm" onclick={() => deleteSelected()}>{t('grid.deleteSelected', { count: selected.size })}</button>
       {/if}
-      {#if filterCount}
+      {#if filterCount && !isFolded('clear')}
         <button class="v-btn-ghost v-btn--sm" onclick={clearFilters}>{t('grid.clearFilters')}</button>
       {/if}
-      {#if meta && !readOnly && !isView}
+      {#if meta && !readOnly && !isView && !isFolded('insert')}
         <button class="v-btn-secondary v-btn--sm" onclick={() => (inserting = true)}>+ {t('insert.button')}</button>
       {/if}
-      <button class="v-btn-ghost v-btn--sm" aria-pressed={filtersOpen} aria-expanded={filtersOpen} onclick={() => (filtersOpen = !filtersOpen)}>
-        {t('grid.filter')}{#if filterCount}<span class="v-badge">{filterCount}</span>{/if}
-      </button>
-      <DensityToggle />
-      <button class="v-btn-ghost v-btn--sm" onclick={load} disabled={loading}>{t('common.refresh')}</button>
+      {#if !isFolded('filter')}
+        <button class="v-btn-ghost v-btn--sm" aria-pressed={filtersOpen} aria-expanded={filtersOpen} onclick={() => (filtersOpen = !filtersOpen)}>
+          {t('grid.filter')}{#if filterCount}<span class="v-badge">{filterCount}</span>{/if}
+        </button>
+      {/if}
+      {#if !isFolded('density')}<DensityToggle />{/if}
+      {#if !isFolded('refresh')}
+        <button class="v-btn-ghost v-btn--sm" onclick={load} disabled={loading}>{t('common.refresh')}</button>
+      {/if}
+      {#if folded}
+        <button
+          class="v-btn-ghost v-btn--sm more"
+          aria-haspopup="menu"
+          aria-label={t('grid.moreActions')}
+          title={t('grid.moreActions')}
+          data-testid="bar-more"
+          onclick={(e) => {
+            const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            openMenu({ clientX: r.right - 200, clientY: r.bottom + 4 }, moreMenu(), t('grid.moreActions'));
+          }}
+        >
+          ⋯{#if filterCount && isFolded('filter')}<span class="v-badge">{filterCount}</span>{/if}
+        </button>
+      {/if}
     </div>
   </header>
 
@@ -333,7 +419,7 @@
   {#if meta && shownTotal > 0}
     <footer class="pager">
       <span class="per-page">
-        <span id="per-page-lbl">{t('grid.perPage')}</span>
+        <span id="per-page-lbl" class="per-page-lbl">{t('grid.perPage')}</span>
         <Select
           compact
           value={String(perPage)}
@@ -347,7 +433,7 @@
       </span>
       <div class="nav">
         <button class="v-btn-ghost v-btn--sm" disabled={page <= 1 || loading} onclick={() => go(page - 1)}>{t('grid.prev')}</button>
-        <span>{t('grid.page', { page: n(page), pages: (total === null ? '~' : '') + n(pages) })}</span>
+        <span class="page-of">{t('grid.page', { page: n(page), pages: (total === null ? '~' : '') + n(pages) })}</span>
         <button class="v-btn-ghost v-btn--sm" disabled={(total !== null && page >= pages) || rows.length < perPage || loading} onclick={() => go(page + 1)}>{t('grid.next')}</button>
       </div>
     </footer>
@@ -366,21 +452,46 @@
     min-width: 0;
     height: 100%;
   }
+  /* One line at every width: the meta shrinks (ellipsis), actions fold into "⋯". */
   .bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+    min-width: 0;
     padding: 6px 12px 6px 16px;
     border-bottom: 1px solid var(--sp-border);
     font-size: 13px;
-    flex-wrap: wrap;
   }
   .meta,
   .actions {
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+  .meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .meta > * {
+    flex-shrink: 0;
+  }
+  .meta .count {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .actions {
+    flex: none;
+    white-space: nowrap;
+  }
+  .more {
+    min-width: 28px;
+    font-size: 15px;
+    line-height: 1;
   }
   .count {
     font-variant-numeric: tabular-nums;
@@ -410,6 +521,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    min-width: 0;
     padding: 4px 16px;
     border-top: 1px solid var(--sp-border);
     font-size: 12px;
@@ -417,13 +530,21 @@
   }
   .nav {
     display: flex;
+    flex: none;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
   }
   .per-page {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
     white-space: nowrap;
+  }
+  .per-page-lbl {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>

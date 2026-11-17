@@ -110,6 +110,7 @@
   "grid.density": "Row density",
   "grid.compact": "Compact",
   "grid.comfortable": "Comfortable",
+  "grid.moreActions": "More actions",
   "grid.resizeColumn": "Resize column {column}",
   "grid.rowNumber": "Row number",
   "grid.detail": "Row {n}",
